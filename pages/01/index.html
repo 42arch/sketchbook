@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+
+      #container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        /* justify-content: center;
+        align-items: center; */
+      }
+
+      /* .chart {
+        width: 450px;
+        max-width: 100%;
+        height: auto;
+        overflow: visible;
+      } */
+      .chart .u-line {
+        stroke: #aaa;
+        stroke-dasharray: 2 2;
+      }
+      /* .chart .u-path {
+        stroke: orange;
+        fill: none;
+      } */
+      .chart .u-point circle {
+        fill: orange;
+      }
+      .chart {
+        text-anchor: middle;
+        font: 11px var(--sans-serif);
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+    <script type="module" src="./main2.js"></script>
+  </body>
+</html>
