@@ -1,6 +1,6 @@
 import ForceGraph3D from '3d-force-graph'
 import * as d3 from 'd3'
-import graphData from './data.json'
+import graphData from '../data/miserables.json'
 
 // see detail: https://github.com/vasturiano/3d-force-graph
 
