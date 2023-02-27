@@ -1,135 +1,245 @@
 import * as d3 from 'd3'
 import data from './../data/miserables.json'
 
-const width = 600
-const height = 600
+class CanvasGraph {
+  constructor(id, data) {
+    this.nodes = data.nodes.map((d) => Object.assign({}, d))
+    this.links = data.links.map((d) => Object.assign({}, d))
+    this.nodeRadius = 8
+    this.width = d3.select(id).node().offsetWidth
+    this.height = d3.select(id).node().offsetHeight
+    this.canvas = d3
+      .select(id)
+      .append('canvas')
+      .attr('width', this.width)
+      .attr('height', this.height)
 
-const canvas = d3
-  .select('#graph')
-  .append('canvas')
-  .attr('width', width)
-  .attr('height', height)
+    this.width = d3.select(id).node().offsetWidth
+    this.height = d3.select(id).node().offsetHeight
 
-const ctx = canvas.node().getContext('2d')
+    this.transform = d3.zoomIdentity
+    this.simulation = this.forceSimulation(this.width, this.height)
+    this.render()
+  }
 
-const nodes = data.nodes.map((d) => Object.assign({}, d))
-const links = data.links.map((d) => Object.assign({}, d))
-const nodeRadius = 8
+  render() {
+    this.simulation.on('tick', this.simulationUpdate.bind(this))
+    this.canvas
+      .call(
+        d3
+          .drag()
+          .container(this.canvas)
+          .subject(this.dragSubject.bind(this))
+          .on('start', this.dragStarted.bind(this))
+          .on('drag', this.dragged.bind(this))
+          .on('end', this.dragEnded.bind(this))
+      )
+      .call(
+        d3
+          .zoom()
+          .scaleExtent([1 / 10, 8])
+          .on('zoom', this.zoomed.bind(this))
+      )
+  }
 
-function forceSimulation(width, height) {
-  return d3
-    .forceSimulation(nodes)
-    .force(
-      'link',
-      d3.forceLink(links).id((d) => d.id)
+  forceSimulation(width, height) {
+    return d3
+      .forceSimulation(this.nodes)
+      .force(
+        'link',
+        d3.forceLink(this.links).id((d) => d.id)
+      )
+      .force('charge', d3.forceManyBody().strength(-100))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+  }
+
+  simulationUpdate() {
+    const ctx = this.canvas.node().getContext('2d')
+    ctx.save()
+    ctx.clearRect(0, 0, this.width, this.height)
+    ctx.translate(this.transform.x, this.transform.y)
+    ctx.scale(this.transform.k, this.transform.k)
+
+    this.links.forEach((link) => {
+      ctx.beginPath()
+      ctx.moveTo(link.source.x, link.source.y)
+      ctx.lineTo(link.target.x, link.target.y)
+      ctx.strokeStyle = '#aaa'
+      ctx.stroke()
+    })
+
+    this.nodes.forEach((node) => {
+      ctx.beginPath()
+      ctx.moveTo(node.x + this.nodeRadius, node.y)
+      ctx.arc(node.x, node.y, this.nodeRadius, 0, 2 * Math.PI)
+      ctx.fillStyle = 'purple'
+      ctx.fill()
+      ctx.strokeStyle = '#fff'
+      ctx.lineWidth = '1.5'
+      ctx.stroke()
+    })
+    ctx.restore()
+  }
+
+  zoomed(currentEvent) {
+    this.transform = currentEvent.transform
+    this.simulationUpdate()
+  }
+
+  dragSubject(currentEvent) {
+    const node = this.simulation.find(
+      this.transform.invertX(currentEvent.x),
+      this.transform.invertY(currentEvent.y),
+      5
     )
-    .force('charge', d3.forceManyBody().strength(-100))
-    .force('center', d3.forceCenter(width / 2, height / 2))
-}
 
-const simulation = forceSimulation(width, height)
-let transform = d3.zoomIdentity
-
-function findNode(nodes, x, y, radius) {
-  const rSq = radius * radius
-  let i
-  for (let i = nodes.length - 1; i >= 0; --i) {
-    const node = nodes[i],
-      dx = x - node.x,
-      dy = y - node.y,
-      distSq = dx * dx + dy * dy
-    if (distSq < rSq) {
-      return node
+    if (node) {
+      node.x = this.transform.applyX(node.x)
+      node.y = this.transform.applyY(node.y)
     }
+
+    return node
   }
-  return undefined
-}
 
-function dragSubject(e) {
-  console.log('drag subject', e)
-  // let transform = d3.zoomIdentity
-
-  // return simulation.find(e.sourceEvent.offsetX, e.sourceEvent.offsetY)
-  const x = transform.invertX(e.x),
-    y = transform.invertY(e.y)
-  const node = findNode(nodes, x, y, nodeRadius)
-  if (node) {
-    node.x = transform.applyX(node.x)
-    node.y = transform.applyY(node.y)
+  dragStarted(currentEvent) {
+    if (!currentEvent.active) this.simulation.alphaTarget(0.3).restart()
+    currentEvent.subject.fx = this.transform.invertX(currentEvent.subject.x)
+    currentEvent.subject.fy = this.transform.invertY(currentEvent.subject.y)
   }
-  return node
+
+  dragged(currentEvent) {
+    currentEvent.subject.fx = this.transform.invertX(currentEvent.x)
+    currentEvent.subject.fy = this.transform.invertY(currentEvent.y)
+  }
+
+  dragEnded(currentEvent) {
+    if (!currentEvent.active) this.simulation.alphaTarget(0)
+    currentEvent.subject.fx = null
+    currentEvent.subject.fy = null
+  }
 }
 
-function zoomed(e) {
-  transform = e.transform
-  simulationUpdate()
+class SvgGraph {
+  constructor(id, data) {
+    this.id = id
+    this.nodes = data.nodes.map((d) => Object.assign({}, d))
+    this.links = data.links.map((d) => Object.assign({}, d))
+    this.nodeRadius = 8
+
+    this.width = d3.select(id).node().offsetWidth
+    this.height = d3.select(id).node().offsetHeight
+
+    this.linkEle = null
+    this.nodeEle = null
+
+    this.transform = d3.zoomIdentity
+    this.simulation = this.forceSimulation(this.width, this.height)
+    this.render()
+  }
+
+  render() {
+    const svg = d3
+      .select(this.id)
+      .append('svg')
+      .attr('width', this.width)
+      .attr('height', this.height)
+      .call(
+        d3
+          .zoom()
+          .scaleExtent([1 / 10, 8])
+          .on('zoom', this.zoomed.bind(this))
+      )
+
+    this.linkEle = svg
+      .append('g')
+      .attr('class', 'group links')
+      .selectAll('line')
+      .data(this.links)
+      .enter()
+      .append('line')
+      .attr('stroke-width', 1)
+      .attr('stroke', 'rgba(50, 50, 50, 0.2)')
+      .on('click', () => {
+        console.log('link clicked')
+      })
+
+    this.nodeEle = svg
+      .append('g')
+      .attr('class', 'group nodes')
+      .attr('fill', 'purple')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 1.5)
+      .selectAll('circle')
+      .data(this.nodes)
+      .join('circle')
+      .attr('r', this.nodeRadius)
+      .call(
+        d3
+          .drag()
+          .on('start', this.dragStarted.bind(this))
+          .on('drag', this.dragged.bind(this))
+          .on('end', this.dragEnded.bind(this))
+      )
+
+    if (this.transform) {
+      const group = d3.selectAll('g')
+      group.attr(
+        'transform',
+        `translate(${this.transform.x},${this.transform.y}) scale(${this.transform.k})`
+      )
+    }
+
+    this.simulation.on('tick', this.simulationUpdate.bind(this))
+  }
+
+  forceSimulation(width, height) {
+    return d3
+      .forceSimulation(this.nodes)
+      .force(
+        'link',
+        d3.forceLink(this.links).id((d) => d.id)
+      )
+      .force('charge', d3.forceManyBody().strength(-100))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+  }
+
+  simulationUpdate() {
+    this.linkEle
+      .attr('x1', (d) => d.source.x)
+      .attr('y1', (d) => d.source.y)
+      .attr('x2', (d) => d.target.x)
+      .attr('y2', (d) => d.target.y)
+
+    this.nodeEle.attr('transform', (d) => {
+      const dx = d.x
+      const dy = d.y
+      return `translate(${[dx, dy]})`
+    })
+  }
+
+  zoomed(currentEvent) {
+    // this.transform = currentEvent.transform
+    d3.selectAll('g').attr('transform', currentEvent.transform)
+  }
+
+  dragStarted(currentEvent) {
+    if (!currentEvent.active) this.simulation.alphaTarget(0.3).restart()
+    currentEvent.subject.fx = currentEvent.subject.x
+    currentEvent.subject.fy = currentEvent.subject.y
+  }
+
+  dragged(currentEvent) {
+    if (!currentEvent.active) this.simulation.alphaTarget(0.3).restart()
+    currentEvent.subject.fx = currentEvent.x
+    currentEvent.subject.fy = currentEvent.y
+  }
+
+  dragEnded(currentEvent) {
+    if (!currentEvent.active) this.simulation.alphaTarget(0)
+    currentEvent.subject.fx = null
+    currentEvent.subject.fy = null
+  }
 }
 
-function simulationUpdate() {
-  ctx.save()
-  ctx.clearRect(0, 0, width, height)
-  ctx.translate(transform.x, transform.y)
-  ctx.scale(transform.k, transform.k)
-
-  links.forEach((link) => {
-    ctx.beginPath()
-    ctx.moveTo(link.source.x, link.source.y)
-    ctx.lineTo(link.target.x, link.target.y)
-    ctx.strokeStyle = '#aaa'
-    ctx.stroke()
-  })
-
-  nodes.forEach((node) => {
-    ctx.beginPath()
-    ctx.moveTo(node.x + nodeRadius, node.y)
-    ctx.arc(node.x, node.y, nodeRadius, 0, 2 * Math.PI)
-    ctx.fillStyle = 'red'
-    ctx.fill()
-    ctx.strokeStyle = '#fff'
-    ctx.lineWidth = '1.5'
-    ctx.stroke()
-  })
-
-  ctx.restore()
-}
-
-simulation.on('tick', simulationUpdate)
-
-canvas
-  .call(
-    d3
-      .drag()
-      // .container(canvas.node())
-      .subject(dragSubject)
-      // .subject((e) =>
-      //   simulation.find(
-      //     e.sourceEvent.offsetX,
-      //     e.sourceEvent.offsetY,
-      //     nodeRadius
-      //   )
-      // )
-      // .subject((e) => simulation.find(e.x, e.y, nodeRadius))
-      .on('start', (e) => {
-        console.log('start drag', e)
-        if (!e.active) simulation.alphaTarget(0.3).restart()
-        e.subject.fx = d3.zoomIdentity.invertX(e.x)
-        e.subject.fy = d3.zoomIdentity.invertY(e.y)
-      })
-      .on('drag', (e) => {
-        e.subject.fx = e.x
-        e.subject.fy = e.y
-        // e.subject.fx = d3.zoomIdentity.invertX(e.x)
-        // e.subject.fy = d3.zoomIdentity.invertY(e.y)
-      })
-      .on('end', (e) => {
-        if (!e.active) simulation.alphaTarget(0)
-        e.subject.fx = null
-        e.subject.fy = null
-      })
-  )
-  .call(
-    d3
-      .zoom()
-      .scaleExtent([1 / 10, 8])
-      .on('zoom', zoomed)
-  )
+new CanvasGraph('#canvas-renderer', data, 400, 400)
+new SvgGraph('#svg-renderer', data, 400, 400)
