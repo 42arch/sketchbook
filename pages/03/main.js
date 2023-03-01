@@ -16,11 +16,15 @@ const forceRadius = (nodes, R = 1) => {
   }
 }
 
+const width = d3.select('#graph').node().offsetWidth
+const height = d3.select('#graph').node().offsetHeight
+
 const graph = ForceGraph3D()
 
 graph(document.querySelector('#graph'))
   .backgroundColor('#fff')
-  .height(600)
+  .height(height)
+  .width(width)
   .linkWidth(1)
   .linkOpacity(0.2)
   .linkDirectionalArrowColor('black')

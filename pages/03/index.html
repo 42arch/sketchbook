@@ -7,13 +7,46 @@
     <title>3. 3D Force Layout</title>
     <link rel="stylesheet" href="./../style.css" />
     <style>
+      .main {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .container {
+        margin: 0;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        border: 1px dashed #aaa;
+        width: 60%;
+        min-width: 360px;
+        height: 80%;
+        padding: 8px;
+      }
+
+      .renderer {
+        display: flex;
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
       .scene-nav-info {
         display: none;
       }
     </style>
   </head>
   <body>
-    <div id="graph" style="width: 100%; height: 100%"></div>
+    <div class="main">
+      <h3>3D Graph</h3>
+      <div class="container">
+        <div id="graph" class="renderer"></div>
+      </div>
+    </div>
     <script type="module" src="./main.js"></script>
   </body>
 </html>
