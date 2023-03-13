@@ -21,6 +21,7 @@
   "dependencies": {
     "3d-force-graph": "^1.71.1",
     "d3": "^7.7.0",
-    "d3-force-3d": "^3.0.5"
+    "d3-force-3d": "^3.0.5",
+    "three": "^0.150.1"
   }
 }

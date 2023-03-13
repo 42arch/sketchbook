@@ -1,0 +1,34 @@
+{
+  "nodes": [
+    {
+      "id": 83320,
+      "label": "Seed",
+      "val": "mituan.zone",
+      "status": 0,
+      "size": 50
+    },
+    {
+      "id": 32631,
+      "label": "Domain",
+      "val": "test.mituan.zone",
+      "status": 0,
+      "size": 40
+    },
+    {
+      "id": 32632,
+      "label": "IP",
+      "val": "54.222.208.118",
+      "os_type": "Ubuntu",
+      "status": 0,
+      "size": 30
+    },
+    { "id": 32806, "label": "Port", "val": "3000", "status": 0, "size": 20 },
+    { "id": 32705, "label": "Service", "val": "http", "status": 0, "size": 10 }
+  ],
+  "links": [
+    { "id": 247693, "type": "Open", "start": 32632, "end": 32806 },
+    { "id": 248693, "type": "Bind", "start": 32806, "end": 32705 },
+    { "id": 247394, "type": "Sowed", "start": 83320, "end": 32631 },
+    { "id": 247395, "type": "Resolve", "start": 32631, "end": 32632 }
+  ]
+}

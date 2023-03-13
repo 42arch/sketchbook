@@ -95,23 +95,54 @@ const circle3 = svg3
   .attr('opacity', 1)
   .attr('cx', width / 2)
   .attr('cy', height / 2)
+const [centerX, centerY] = [width / 2 - radius / 2, height / 2 - radius / 2]
+// path绘制三角形
+const obj = svg3
+  .append('path')
+  .attr(
+    'd',
+    `M ${centerX + 10} ${centerY + 5} L ${centerX + 15} ${centerY + 15} L ${
+      centerX + 5
+    } ${centerY + 15} Z`
+  )
 
-const point = svg3
-  .append('circle')
-  .attr('cx', width / 2)
-  .attr('cy', height / 2)
-  .attr('r', 3)
-  .attr('fill', '#000')
+// polygon绘制三角形
+// const obj = svg3
+//   .append('polygon')
+//   .attr(
+//     'points',
+//     `${centerX + 10},${centerY + 5} ${centerX + 15},${centerY + 15} ${
+//       centerX + 5
+//     },${centerY + 15}`
+//   )
 
-function spinPoint(angle, clockwise) {
-  const radian = (angle * Math.PI) / 180
-  const x = Math.cos(radian) * radius
-  const y = Math.sin(clockwise ? radian : -radian) * radius
-  point.attr('transform', `translate(${x} ${y})`)
+// const obj = svg3
+//   .append('circle')
+//   .attr('cx', width / 2)
+//   .attr('cy', height / 2)
+//   .attr('r', 3)
+//   .attr('fill', '#000')
+
+let angle = 0
+function rotate() {
+  angle += 1
+  const transform = `rotate(${angle}, ${centerX + radius / 2}, ${
+    centerY + radius / 2
+  })`
+  obj.attr('transform', transform)
 }
 
-let i = 0
-d3.timer(() => {
-  spinPoint(i, false)
-  i = i + 2
-})
+d3.timer(rotate)
+
+// function spinPoint(angle, clockwise) {
+//   const radian = (angle * Math.PI) / 180
+//   const x = Math.cos(radian) * radius
+//   const y = Math.sin(clockwise ? radian : -radian) * radius
+//   obj.attr('transform', `translate(${x} ${y}) `)
+// }
+
+// let i = 0
+// d3.timer(() => {
+//   spinPoint(i, false)
+//   i = i + 2
+// })
