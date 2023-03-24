@@ -26,9 +26,9 @@
     { "id": 32705, "label": "Service", "val": "http", "status": 0, "size": 10 }
   ],
   "links": [
-    { "id": 247693, "type": "Open", "start": 32632, "end": 32806 },
-    { "id": 248693, "type": "Bind", "start": 32806, "end": 32705 },
-    { "id": 247394, "type": "Sowed", "start": 83320, "end": 32631 },
-    { "id": 247395, "type": "Resolve", "start": 32631, "end": 32632 }
+    { "id": 247693, "type": "Open", "source": 32632, "target": 32806 },
+    { "id": 248693, "type": "Bind", "source": 32806, "target": 32705 },
+    { "id": 247394, "type": "Sowed", "source": 83320, "target": 32631 },
+    { "id": 247395, "type": "Resolve", "source": 32631, "target": 32632 }
   ]
 }
