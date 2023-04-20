@@ -5,34 +5,79 @@ body {
   padding: 0;
   margin: 0;
   font-size: 16px;
+  background: #f0db51;
+  color: #31322f;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
 }
 
 .container {
-  width: 100%;
-  height: 100%;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 24px;
+  max-width: 1024px;
+  padding: 0 16px;
+  position: relative;
+  margin: 32px auto 64px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 24px 0;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 1;
 }
 
 .title {
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
-  color: #ef4444;
-  padding: 10px 0;
+  margin: 0;
+  padding: 0;
 }
 
-.items {
-  padding-top: 20px;
+.description {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  gap: 12px;
 }
 
-.items a {
-  margin: 10px;
-  color: #10b981;
+.git {
+  cursor: pointer;
+  text-decoration: none;
+  color: #31322f;
+}
+
+.project {
+  padding: 20px;
+  border: 1px dashed;
+  background-color: #fff;
+}
+
+.project-list {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 767px) {
+  .project-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .project-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
