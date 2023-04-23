@@ -40,10 +40,17 @@
       import data from './data.json'
 
       data.forEach((item, index) => {
-        const projectDom = document.createElement('a')
-        projectDom.className = 'project'
-        projectDom.innerHTML = `<h3>${index}. ${item.name}</h3>`
-        document.getElementById('project-list').append(projectDom)
+        const projectEl = document.createElement('a')
+        projectEl.setAttribute('href', `/pages/${item.page}/index.html`)
+        projectEl.className = 'project'
+        projectEl.innerHTML = `
+          <h3>${index + 1}. ${item.name}</h3>
+          <p>${item.intro}</p>
+          <p class='tag-list'> ${item.tools
+            ?.map((i, idx) => `<span class='tag'>${i}</span>`)
+            .join('')}</p>
+        `
+        document.getElementById('project-list').append(projectEl)
       })
     </script>
   </body>

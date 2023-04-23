@@ -61,7 +61,39 @@ h6 {
 .project {
   padding: 20px;
   border: 1px dashed;
-  background-color: #fff;
+  background-color: #fcf8dc;
+  cursor: pointer;
+  text-decoration: none;
+  color: #31322f;
+  display: flex;
+  flex-direction: column;
+  transition: all ease 0.3s;
+}
+
+.project:hover {
+  background-color: #31322f;
+  color: #f0db51;
+}
+
+.project p {
+  opacity: 80%;
+}
+
+.project:hover p {
+  color: #fff;
+}
+
+.tag-list {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.tag {
+  padding: 2px 4px;
+  border: 1px dashed;
+  border-radius: 2px;
 }
 
 .project-list {
