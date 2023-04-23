@@ -12,7 +12,7 @@
       <div class="header">
         <h1 class="title">Experiments and Demos</h1>
         <span class="description">
-          <span>A collection about front-end experiments and demos.</span>
+          <span>A collection about JavaScript experiments and demos.</span>
           <a
             class="git"
             href="https://github.com/42arch/experiments"
@@ -45,7 +45,7 @@
         projectEl.className = 'project'
         projectEl.innerHTML = `
           <h3>${index + 1}. ${item.name}</h3>
-          <p>${item.intro}</p>
+          <p class='intro'>${item.intro}</p>
           <p class='tag-list'> ${item.tools
             ?.map((i, idx) => `<span class='tag'>${i}</span>`)
             .join('')}</p>

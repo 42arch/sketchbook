@@ -77,6 +77,7 @@ h6 {
 
 .project p {
   opacity: 80%;
+  margin: 8px 0 0 0;
 }
 
 .project:hover p {
@@ -86,14 +87,13 @@ h6 {
 .tag-list {
   display: flex;
   flex-direction: row;
-  gap: 8px;
-  margin: 4px 0;
+  gap: 12px;
+  padding-top: 4px;
 }
 
 .tag {
-  padding: 2px 4px;
-  border: 1px dashed;
-  border-radius: 2px;
+  padding: 2px 0px;
+  font-size: small;
 }
 
 .project-list {
