@@ -8,13 +8,15 @@ const sx = 40,
   ex = 350,
   ey = 20
 
+const width = d3.select('.renderer').node().offsetWidth - 2
+const height = d3.select('.renderer').node().offsetHeight - 2
+
 const chart = d3
-  .select('#container')
+  .select('.renderer')
   .append('svg')
-  .attr('id', chartId)
-  .attr('viewBox', '0 0 600 300')
-  .attr('width', 600)
-  .attr('maxWidth', '100%')
+  .attr('viewBox', `0 0 ${width} ${height}`)
+  .attr('width', width)
+// .attr('maxWidth', '100%')
 
 const path = d3.path()
 path.moveTo(sx, sy)

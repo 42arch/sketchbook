@@ -29,7 +29,6 @@
 
       .renderer {
         margin: 8px;
-        display: flex;
         position: relative;
         border: 1px dashed #aaa;
         width: 90%;
@@ -44,9 +43,14 @@
       <div class="container">
         <div id="demo1" class="renderer"></div>
         <div id="demo2" class="renderer"></div>
-        <div id="demo2" class="renderer"></div>
+        <div id="demo3" class="renderer"></div>
         <div id="demo4" class="renderer"></div>
-        <div id="demo5" class="renderer"></div>
+        <div id="demo5" class="renderer">
+          <div style="position: absolute">
+            <button id="group1">跳转group1</button>
+            <button id="group2">跳转group2</button>
+          </div>
+        </div>
       </div>
     </div>
     <script type="module" src="./main.js"></script>
