@@ -21,6 +21,19 @@ class CartesianCoordinate {
       .attr('width', this.width)
       .attr('height', this.height)
       .attr('viewBox', [0, 0, this.width, this.height])
+
+    this.wrapper
+      .append('defs')
+      .append('marker')
+      .attr('id', 'arrowhead')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 8) // 设置箭头在路径的终点处
+      .attr('markerWidth', 6) // 宽度和高度
+      .attr('markerHeight', 6)
+      .attr('orient', 'auto') // 自动确定箭头方向
+      .append('path')
+      .attr('d', 'M0,-5L10,0L0,5') // 箭头路径
+
     this.bounds = this.wrapper
       .append('g')
       .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`)
@@ -28,40 +41,77 @@ class CartesianCoordinate {
     this.bounds.append('g').call(this.xAxis.bind(this))
     this.bounds.append('g').call(this.yAxis.bind(this))
     this.addCrosshair()
+
+    // d3.selectAll('.domain').attr('marker-end', 'url(#arrowhead)')
   }
 
   xAxis(g) {
-    return g
-      .attr('transform', `translate(0, ${this.boundHeight})`)
+    const xScale = d3
+      .scaleLinear()
+      .domain([-10, 10])
+      .range([0, this.boundWidth])
+
+    const xAxisGroup = g
+      .attr('transform', `translate(0, ${this.boundHeight / 2})`)
       .call(
         d3
-          .axisBottom(
-            d3.scaleLinear().domain([0, 10]).range([0, this.boundWidth])
-          )
-          .ticks(5)
+          .axisBottom(xScale)
+          .tickValues(d3.range(-10, 11).filter((d) => d % 2 === 0 && d !== 0))
+          .tickSizeInner(-6)
+          .tickSizeOuter(0)
+          .tickPadding(6)
       )
+    xAxisGroup
+      .append('text')
+      .attr('x', this.boundWidth + 10)
+      .attr('y', 0)
+      .attr('fill', '#000')
+      .text('X')
+
+    xAxisGroup
       .selectAll('.tick line')
       .clone()
-      .attr('y2', -this.height + this.margin.top + this.margin.bottom)
+      .attr('y1', this.boundHeight)
+      .attr('y2', -this.boundHeight)
       .attr('stroke-dasharray', '2,2')
       .attr('stroke-opacity', 0.3)
+
+    return xAxisGroup
   }
 
   yAxis(g) {
-    return (
-      g
-        // .attr('transform', `translate(${this.margin.left}, 0)`)
-        .call(
-          d3.axisLeft(
-            d3.scaleLinear().domain([0, 1]).range([0, this.boundHeight])
-          )
-        )
-        .selectAll('.tick line')
-        .clone()
-        .attr('x2', this.boundHeight)
-        .attr('stroke-dasharray', '2,2')
-        .attr('stroke-opacity', 0.3)
-    )
+    const yScale = d3
+      .scaleLinear()
+      .domain([10, -10])
+      .range([0, this.boundHeight])
+
+    const yAxisGroup = g
+      .attr('transform', `translate(${this.boundWidth / 2}, 0)`)
+      .call(
+        d3
+          .axisLeft(yScale)
+          .tickValues(d3.range(-10, 11).filter((d) => d % 2 === 0 && d !== 0))
+          .tickSizeInner(-6)
+          .tickSizeOuter(0)
+          .tickPadding(6)
+      )
+
+    yAxisGroup
+      .append('text')
+      .attr('x', 0)
+      .attr('y', -10)
+      .attr('fill', '#000')
+      .text('Y')
+
+    yAxisGroup
+      .selectAll('.tick line')
+      .clone()
+      .attr('x1', -this.boundWidth)
+      .attr('x2', this.boundWidth)
+      .attr('stroke-dasharray', '2,2')
+      .attr('stroke-opacity', 0.3)
+
+    return yAxisGroup
   }
 
   addCrosshair() {
@@ -72,6 +122,8 @@ class CartesianCoordinate {
       .style('pointer-events', 'all')
       .attr('fill', 'none')
       .attr('stroke', 'none')
+
+    const tooltip = this.bounds.append('text')
 
     const crosshair = this.bounds
       .append('g')
@@ -101,7 +153,7 @@ class CartesianCoordinate {
 
     overlay.on('mousemove', (e) => {
       const [x, y] = d3.pointer(e)
-      console.log('mousemove', x, y)
+      overlay.attr('cursor', 'crosshair')
       crosshairX.attr('y1', y).attr('y2', y)
       crosshairY.attr('x1', x).attr('x2', x)
     })
