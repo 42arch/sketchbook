@@ -23,33 +23,28 @@ class CartesianCoordinate {
       .attr('viewBox', [0, 0, this.width, this.height])
     this.bounds = this.wrapper
       .append('g')
-      .style(
-        'transform',
-        `translate(${this.margin.left}px, ${this.margin.top}px)`
-      )
+      .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`)
 
     this.bounds.append('g').call(this.xAxis.bind(this))
     this.bounds.append('g').call(this.yAxis.bind(this))
-    this.crosshair()
+    this.addCrosshair()
   }
 
   xAxis(g) {
-    return (
-      g
-        // .attr('transform', `translate(0, ${this.height - this.margin.bottom})`)
-        .call(
-          d3
-            .axisBottom(
-              d3.scaleLinear().domain([0, 10]).range([0, this.boundWidth])
-            )
-            .ticks(5)
-        )
-        .selectAll('.tick line')
-        .clone()
-        .attr('y2', -this.height + this.margin.top + this.margin.bottom)
-        .attr('stroke-dasharray', '2,2')
-        .attr('stroke-opacity', 0.3)
-    )
+    return g
+      .attr('transform', `translate(0, ${this.boundHeight})`)
+      .call(
+        d3
+          .axisBottom(
+            d3.scaleLinear().domain([0, 10]).range([0, this.boundWidth])
+          )
+          .ticks(5)
+      )
+      .selectAll('.tick line')
+      .clone()
+      .attr('y2', -this.height + this.margin.top + this.margin.bottom)
+      .attr('stroke-dasharray', '2,2')
+      .attr('stroke-opacity', 0.3)
   }
 
   yAxis(g) {
@@ -57,7 +52,9 @@ class CartesianCoordinate {
       g
         // .attr('transform', `translate(${this.margin.left}, 0)`)
         .call(
-          d3.axisLeft(d3.scaleLinear().domain([0, 1]).range([this.boundHeight]))
+          d3.axisLeft(
+            d3.scaleLinear().domain([0, 1]).range([0, this.boundHeight])
+          )
         )
         .selectAll('.tick line')
         .clone()
@@ -67,35 +64,49 @@ class CartesianCoordinate {
     )
   }
 
-  crosshair() {
-    const crosshairX = this.wrapper
+  addCrosshair() {
+    const overlay = this.bounds
+      .append('rect')
+      .attr('width', this.boundWidth)
+      .attr('height', this.boundHeight)
+      .style('pointer-events', 'all')
+      .attr('fill', 'none')
+      .attr('stroke', 'none')
+
+    const crosshair = this.bounds
+      .append('g')
+      .style('opacity', 1)
+      .style('pointer-events', 'none')
+    const crosshairX = crosshair
       .append('line')
       .attr('class', 'crosshair')
-      .attr('stroke', 'red')
-
+      .attr('stroke', 'black')
+      .attr('stroke-opacity', 0.3)
+      .attr('stroke-dasharray', '6,6')
       .attr('x1', 0)
-      .attr('x2', this.width)
-      .attr('y1', 0)
-      .attr('y2', 0)
+      .attr('x2', this.boundWidth)
+      .attr('y1', this.boundHeight)
+      .attr('y2', this.boundHeight)
 
-    const crosshairY = this.wrapper
+    const crosshairY = crosshair
       .append('line')
       .attr('class', 'crosshair')
-      .attr('stroke', 'red')
+      .attr('stroke', 'black')
+      .attr('stroke-opacity', 0.3)
+      .attr('stroke-dasharray', '6,6')
       .attr('x1', 0)
       .attr('x2', 0)
       .attr('y1', 0)
-      .attr('y2', this.height)
+      .attr('y2', this.boundHeight)
 
-    this.wrapper.on('mousemove', (e) => {
+    overlay.on('mousemove', (e) => {
       const [x, y] = d3.pointer(e)
-      // console.log('mousemove', x, y)
+      console.log('mousemove', x, y)
       crosshairX.attr('y1', y).attr('y2', y)
       crosshairY.attr('x1', x).attr('x2', x)
     })
-    this.wrapper.on('mouseout', () => {
-      console.log('mouseout')
-      crosshairX.attr('y1', 0).attr('y2', 0)
+    overlay.on('mouseout', () => {
+      crosshairX.attr('y1', this.boundHeight).attr('y2', this.boundHeight)
       crosshairY.attr('x1', 0).attr('x2', 0)
     })
   }
