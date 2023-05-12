@@ -27,6 +27,13 @@
         padding: 8px;
       }
 
+      .item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+      }
+
       .renderer {
         margin: 8px;
         display: flex;
@@ -35,15 +42,27 @@
         width: 600px;
         height: 600px;
       }
+
+      p {
+        z-index: 99;
+        width: 100%;
+        text-align: center;
+      }
     </style>
   </head>
   <body>
     <div class="main">
-      <!-- <h3>Coordinate Systems</h3> -->
+      <h3>Coordinate Systems</h3>
 
       <div class="container">
-        <div id="coordinate1" class="renderer"></div>
-        <!-- <div id="coordinate2" class="renderer"></div> -->
+        <div class="item">
+          <div id="coordinate1" class="renderer"></div>
+          <p>Cartesian Coordinate</p>
+        </div>
+        <div>
+          <div id="coordinate2" class="renderer"></div>
+          <p>Polar Coordinate</p>
+        </div>
       </div>
     </div>
     <script type="module" src="./main.js"></script>

@@ -3,36 +3,50 @@
     "name": "Line",
     "intro": "draw line in d3.js",
     "page": "01",
-    "tools": ["d3.js"]
+    "tools": [
+      "d3.js"
+    ]
   },
   {
     "name": "Force Directed Graph",
     "intro": "Draw Force Directed Graph by SVG and Canvas",
     "page": "02",
-    "tools": ["d3.js", "SVG", "Canvas"]
+    "tools": [
+      "d3.js",
+      "SVG",
+      "Canvas"
+    ]
   },
   {
     "name": "3D Force Layout",
     "intro": "3D Force Layout By Three.js",
     "page": "03",
-    "tools": ["three.js"]
+    "tools": [
+      "three.js"
+    ]
   },
   {
     "name": "Coordinate Systems",
-    "intro": "Cartesian coordinate system",
+    "intro": "Cartesian coordinate system and polar coordinate system",
     "page": "05",
-    "tools": ["d3.js"]
+    "tools": [
+      "d3.js"
+    ]
   },
   {
     "name": "3D Material Demo",
     "intro": "Some Different Materails Provided By Three.js",
     "page": "06",
-    "tools": ["three.js"]
+    "tools": [
+      "three.js"
+    ]
   },
   {
     "name": "Basic Charts",
     "intro": "Some Basic Charts made with d3.js",
     "page": "07",
-    "tools": ["d3.js"]
+    "tools": [
+      "d3.js"
+    ]
   }
 ]

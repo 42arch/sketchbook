@@ -28,18 +28,6 @@ class CartesianCoordinate {
       .attr('height', this.height)
       .attr('viewBox', [0, 0, this.width, this.height])
 
-    // this.wrapper
-    //   .append('defs')
-    //   .append('marker')
-    //   .attr('id', 'arrowhead')
-    //   .attr('viewBox', '0 -5 10 10')
-    //   .attr('refX', 8) // 设置箭头在路径的终点处
-    //   .attr('markerWidth', 6) // 宽度和高度
-    //   .attr('markerHeight', 6)
-    //   .attr('orient', 'auto') // 自动确定箭头方向
-    //   .append('path')
-    //   .attr('d', 'M0,-5L10,0L0,5') // 箭头路径
-
     this.bounds = this.wrapper
       .append('g')
       .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`)
@@ -47,15 +35,16 @@ class CartesianCoordinate {
     this.bounds.append('g').call(this.xAxis.bind(this))
     this.bounds.append('g').call(this.yAxis.bind(this))
     this.helperLine()
-    // d3.selectAll('.domain').attr('marker-end', 'url(#arrowhead)')
   }
 
   xAxis(g) {
     const xAxisGroup = g
       .attr('transform', `translate(0, ${this.boundHeight / 2})`)
+      .attr('font-size', '.8em')
       .call(
         d3
           .axisBottom(this.xScale)
+
           .tickValues(d3.range(-10, 11).filter((d) => d % 2 === 0 && d !== 0))
           .tickSizeInner(-6)
           .tickSizeOuter(0)
@@ -67,6 +56,8 @@ class CartesianCoordinate {
       .attr('y', 0)
       .attr('fill', '#000')
       .text('X')
+
+    xAxisGroup.selectAll('text').attr('fill', 'gray')
 
     xAxisGroup
       .selectAll('.tick line')
@@ -82,6 +73,7 @@ class CartesianCoordinate {
   yAxis(g) {
     const yAxisGroup = g
       .attr('transform', `translate(${this.boundWidth / 2}, 0)`)
+      .attr('font-size', '.8em')
       .call(
         d3
           .axisLeft(this.yScale)
@@ -97,6 +89,8 @@ class CartesianCoordinate {
       .attr('y', -10)
       .attr('fill', '#000')
       .text('Y')
+
+    yAxisGroup.selectAll('text').attr('fill', 'gray')
 
     yAxisGroup
       .selectAll('.tick line')
@@ -118,7 +112,7 @@ class CartesianCoordinate {
       .attr('fill', 'none')
       .attr('stroke', 'none')
 
-    const tooltip = this.bounds.append('text')
+    const tooltip = this.bounds.append('text').attr('fill', 'gray')
 
     const crosshair = this.bounds
       .append('g')
@@ -127,8 +121,8 @@ class CartesianCoordinate {
     const crosshairX = crosshair
       .append('line')
       .attr('class', 'crosshair')
-      .attr('stroke', 'black')
-      .attr('stroke-opacity', 0.3)
+      .attr('stroke', 'red')
+      .attr('stroke-opacity', 1)
       .attr('stroke-dasharray', '6,6')
       .attr('x1', 0)
       .attr('x2', this.boundWidth)
@@ -138,8 +132,8 @@ class CartesianCoordinate {
     const crosshairY = crosshair
       .append('line')
       .attr('class', 'crosshair')
-      .attr('stroke', 'black')
-      .attr('stroke-opacity', 0.3)
+      .attr('stroke', 'red')
+      .attr('stroke-opacity', 1)
       .attr('stroke-dasharray', '6,6')
       .attr('x1', 0)
       .attr('x2', 0)
@@ -151,8 +145,8 @@ class CartesianCoordinate {
       const xValue = d3.format('.2f')(this.xScale.invert(x))
       const yValue = d3.format('.2f')(this.yScale.invert(y))
       overlay.attr('cursor', 'crosshair')
-      crosshairX.attr('y1', y).attr('y2', y)
-      crosshairY.attr('x1', x).attr('x2', x)
+      crosshairX.attr('y1', y).attr('y2', y).attr('opacity', 1)
+      crosshairY.attr('x1', x).attr('x2', x).attr('opacity', 1)
       tooltip
         .attr('opacity', 1)
         .attr('x', x)
@@ -162,8 +156,8 @@ class CartesianCoordinate {
         .text(`x:${xValue}, y:${yValue}`)
     })
     overlay.on('mouseout', () => {
-      crosshairX.attr('y1', this.boundHeight).attr('y2', this.boundHeight)
-      crosshairY.attr('x1', 0).attr('x2', 0)
+      crosshairX.attr('opacity', 0)
+      crosshairY.attr('opacity', 0)
       tooltip.attr('opacity', 0)
     })
   }
@@ -271,6 +265,7 @@ class PolarCoordinate {
       .style('pointer-events', 'all')
       .attr('fill', 'none')
       .attr('stroke', 'none')
+      .attr('cursor', 'crosshair')
 
     // const scale = this.scale.ticks(5).slice(1)
     const helperCircle = this.content
@@ -280,6 +275,8 @@ class PolarCoordinate {
       .attr('stroke-dasharray', '4, 4')
       .attr('stroke', 'red')
 
+    const format = d3.format('.2f')
+
     const helperAxis = this.content
       .append('line')
       .style('pointer-events', 'none')
@@ -287,20 +284,31 @@ class PolarCoordinate {
       .attr('stroke', 'red')
       .attr('x2', this.radius)
 
+    const tooltip = this.content.append('text').attr('fill', 'gray')
+
     overlay.on('mousemove', (e) => {
       const [x, y] = d3.pointer(e)
       const r = Math.sqrt(x * x + y * y)
+      const radius = this.scale.invert(r)
       const theta = Math.atan2(y, x)
       const deg = (theta * 180) / Math.PI
       helperCircle.attr('r', r).attr('opacity', 1)
       helperAxis.attr('transform', `rotate(${deg})`).attr('opacity', 1)
+      tooltip
+        .attr('opacity', 1)
+        .attr('x', x)
+        .attr('y', y)
+        .attr('font-size', '.8em')
+        .attr('transform', 'translate(8, -8)')
+        .text(`r:${format(radius)}, θ:${format(theta)}`)
     })
     overlay.on('mouseout', () => {
       helperCircle.attr('opacity', 0)
       helperAxis.attr('opacity', 0)
+      tooltip.attr('opacity', 0)
     })
   }
 }
 
-// const cartesian = new CartesianCoordinate('#coordinate1')
-const polar = new PolarCoordinate('#coordinate1')
+const cartesian = new CartesianCoordinate('#coordinate1')
+const polar = new PolarCoordinate('#coordinate2')
