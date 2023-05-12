@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 class CartesianCoordinate {
   constructor(id) {
     this.id = id
-    this.margin = { top: 20, right: 30, bottom: 30, left: 40 }
+    this.margin = { top: 20, right: 30, bottom: 20, left: 30 }
     this.width = d3.select(id).node().offsetWidth
     this.height = d3.select(id).node().offsetHeight
     this.boundWidth = this.width - this.margin.right - this.margin.left
@@ -28,17 +28,17 @@ class CartesianCoordinate {
       .attr('height', this.height)
       .attr('viewBox', [0, 0, this.width, this.height])
 
-    this.wrapper
-      .append('defs')
-      .append('marker')
-      .attr('id', 'arrowhead')
-      .attr('viewBox', '0 -5 10 10')
-      .attr('refX', 8) // 设置箭头在路径的终点处
-      .attr('markerWidth', 6) // 宽度和高度
-      .attr('markerHeight', 6)
-      .attr('orient', 'auto') // 自动确定箭头方向
-      .append('path')
-      .attr('d', 'M0,-5L10,0L0,5') // 箭头路径
+    // this.wrapper
+    //   .append('defs')
+    //   .append('marker')
+    //   .attr('id', 'arrowhead')
+    //   .attr('viewBox', '0 -5 10 10')
+    //   .attr('refX', 8) // 设置箭头在路径的终点处
+    //   .attr('markerWidth', 6) // 宽度和高度
+    //   .attr('markerHeight', 6)
+    //   .attr('orient', 'auto') // 自动确定箭头方向
+    //   .append('path')
+    //   .attr('d', 'M0,-5L10,0L0,5') // 箭头路径
 
     this.bounds = this.wrapper
       .append('g')
@@ -46,8 +46,7 @@ class CartesianCoordinate {
 
     this.bounds.append('g').call(this.xAxis.bind(this))
     this.bounds.append('g').call(this.yAxis.bind(this))
-    this.addCrosshair()
-
+    this.helperLine()
     // d3.selectAll('.domain').attr('marker-end', 'url(#arrowhead)')
   }
 
@@ -81,11 +80,6 @@ class CartesianCoordinate {
   }
 
   yAxis(g) {
-    // const yScale = d3
-    //   .scaleLinear()
-    //   .domain([10, -10])
-    //   .range([0, this.boundHeight])
-
     const yAxisGroup = g
       .attr('transform', `translate(${this.boundWidth / 2}, 0)`)
       .call(
@@ -115,7 +109,7 @@ class CartesianCoordinate {
     return yAxisGroup
   }
 
-  addCrosshair() {
+  helperLine() {
     const overlay = this.bounds
       .append('rect')
       .attr('width', this.boundWidth)
@@ -175,4 +169,138 @@ class CartesianCoordinate {
   }
 }
 
-const cartesian = new CartesianCoordinate('#coordinate1')
+class PolarCoordinate {
+  constructor(id) {
+    this.id = id
+    this.margin = { top: 20, right: 30, bottom: 20, left: 30 }
+    this.width = d3.select(id).node().offsetWidth
+    this.height = d3.select(id).node().offsetHeight
+    this.boundWidth = this.width - this.margin.right - this.margin.left
+    this.boundHeight = this.height - this.margin.top - this.margin.bottom
+    this.wrapper = null
+    this.content = null
+
+    this.radius = Math.min(this.boundHeight, this.boundWidth) / 2
+    this.scale = d3.scaleLinear().domain([0, 10]).range([0, this.radius])
+    this.angle = d3
+      .scaleLinear()
+      .domain([0, 360])
+      .range([0, 2 * Math.PI])
+
+    this.render()
+  }
+
+  render() {
+    this.wrapper = d3
+      .select(this.id)
+      .append('svg')
+      .attr('width', this.width)
+      .attr('height', this.height)
+      .attr('viewBox', [0, 0, this.width, this.height])
+    this.content = this.wrapper
+      .append('g')
+      .attr('transform', `translate(${this.width / 2}, ${this.height / 2})`)
+
+    this.content.append('g').call(this.radialGrid.bind(this))
+    this.content.append('g').call(this.radialAxis.bind(this))
+
+    this.helperLine()
+  }
+
+  radialGrid(g) {
+    const radialGrid = g
+      .attr('class', 'radial-grid')
+      .selectAll('g')
+      .data(this.scale.ticks(5).slice(1))
+      .enter()
+      .append('g')
+
+    radialGrid
+      .append('circle')
+      .attr('r', this.scale)
+      .attr('fill', 'none')
+      .attr('stroke', 'gray')
+      .attr('stroke-dasharray', '2, 2')
+
+    radialGrid
+      .append('text')
+      .attr('y', (d) => -this.scale(d) - 4)
+      .attr('transform', 'rotate(15)')
+      .style('text-anchor', 'middle')
+      .attr('fill', 'gray')
+      .attr('font-size', '.8em')
+      .text((d) => d)
+
+    return radialGrid
+  }
+
+  radialAxis(g) {
+    const radialAxis = g
+      .attr('class', 'radial-axis')
+      .selectAll('g')
+      .data(d3.range(0, 360, 30))
+      .enter()
+      .append('g')
+      .attr('transform', (d) => `rotate(${-d})`)
+
+    radialAxis
+      .append('line')
+      .attr('x2', this.radius)
+      .attr('stroke', 'gray')
+      .attr('stroke-dasharray', '2, 2')
+
+    radialAxis
+      .append('text')
+      .attr('x', this.radius + 6)
+      .attr('dy', '.35em')
+      .style('text-anchor', (d) => (d < 270 && d > 90 ? 'end' : null))
+      .attr('transform', (d) =>
+        d < 270 && d > 90 ? `rotate(180 ${this.radius + 6},0)` : null
+      )
+      .attr('fill', 'gray')
+      .attr('font-size', '.8em')
+      .text((d) => d + '°')
+
+    return radialAxis
+  }
+
+  helperLine() {
+    const overlay = this.content
+      .append('circle')
+      .attr('r', this.radius)
+      .style('pointer-events', 'all')
+      .attr('fill', 'none')
+      .attr('stroke', 'none')
+
+    // const scale = this.scale.ticks(5).slice(1)
+    const helperCircle = this.content
+      .append('circle')
+      .style('pointer-events', 'none')
+      .attr('fill', 'none')
+      .attr('stroke-dasharray', '4, 4')
+      .attr('stroke', 'red')
+
+    const helperAxis = this.content
+      .append('line')
+      .style('pointer-events', 'none')
+      .attr('stroke-dasharray', '4, 4')
+      .attr('stroke', 'red')
+      .attr('x2', this.radius)
+
+    overlay.on('mousemove', (e) => {
+      const [x, y] = d3.pointer(e)
+      const r = Math.sqrt(x * x + y * y)
+      const theta = Math.atan2(y, x)
+      const deg = (theta * 180) / Math.PI
+      helperCircle.attr('r', r).attr('opacity', 1)
+      helperAxis.attr('transform', `rotate(${deg})`).attr('opacity', 1)
+    })
+    overlay.on('mouseout', () => {
+      helperCircle.attr('opacity', 0)
+      helperAxis.attr('opacity', 0)
+    })
+  }
+}
+
+// const cartesian = new CartesianCoordinate('#coordinate1')
+const polar = new PolarCoordinate('#coordinate1')
