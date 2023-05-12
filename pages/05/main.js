@@ -11,6 +11,12 @@ class CartesianCoordinate {
     this.wrapper = null
     this.bounds = null
 
+    this.xScale = d3.scaleLinear().domain([-10, 10]).range([0, this.boundWidth])
+    this.yScale = d3
+      .scaleLinear()
+      .domain([10, -10])
+      .range([0, this.boundHeight])
+
     this.render()
   }
 
@@ -46,16 +52,11 @@ class CartesianCoordinate {
   }
 
   xAxis(g) {
-    const xScale = d3
-      .scaleLinear()
-      .domain([-10, 10])
-      .range([0, this.boundWidth])
-
     const xAxisGroup = g
       .attr('transform', `translate(0, ${this.boundHeight / 2})`)
       .call(
         d3
-          .axisBottom(xScale)
+          .axisBottom(this.xScale)
           .tickValues(d3.range(-10, 11).filter((d) => d % 2 === 0 && d !== 0))
           .tickSizeInner(-6)
           .tickSizeOuter(0)
@@ -80,16 +81,16 @@ class CartesianCoordinate {
   }
 
   yAxis(g) {
-    const yScale = d3
-      .scaleLinear()
-      .domain([10, -10])
-      .range([0, this.boundHeight])
+    // const yScale = d3
+    //   .scaleLinear()
+    //   .domain([10, -10])
+    //   .range([0, this.boundHeight])
 
     const yAxisGroup = g
       .attr('transform', `translate(${this.boundWidth / 2}, 0)`)
       .call(
         d3
-          .axisLeft(yScale)
+          .axisLeft(this.yScale)
           .tickValues(d3.range(-10, 11).filter((d) => d % 2 === 0 && d !== 0))
           .tickSizeInner(-6)
           .tickSizeOuter(0)
@@ -153,9 +154,17 @@ class CartesianCoordinate {
 
     overlay.on('mousemove', (e) => {
       const [x, y] = d3.pointer(e)
+      const xValue = d3.format('.2f')(this.xScale.invert(x))
+      const yValue = d3.format('.2f')(this.yScale.invert(y))
       overlay.attr('cursor', 'crosshair')
       crosshairX.attr('y1', y).attr('y2', y)
       crosshairY.attr('x1', x).attr('x2', x)
+      tooltip
+        .attr('x', x)
+        .attr('y', y)
+        .attr('font-size', '.8em')
+        .attr('transform', 'translate(8, -8)')
+        .text(`x:${xValue}, y:${yValue}`)
     })
     overlay.on('mouseout', () => {
       crosshairX.attr('y1', this.boundHeight).attr('y2', this.boundHeight)
