@@ -160,6 +160,7 @@ class CartesianCoordinate {
       crosshairX.attr('y1', y).attr('y2', y)
       crosshairY.attr('x1', x).attr('x2', x)
       tooltip
+        .attr('opacity', 1)
         .attr('x', x)
         .attr('y', y)
         .attr('font-size', '.8em')
@@ -169,6 +170,7 @@ class CartesianCoordinate {
     overlay.on('mouseout', () => {
       crosshairX.attr('y1', this.boundHeight).attr('y2', this.boundHeight)
       crosshairY.attr('x1', 0).attr('x2', 0)
+      tooltip.attr('opacity', 0)
     })
   }
 }
