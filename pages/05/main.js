@@ -9,7 +9,7 @@ class CartesianCoordinate {
     this.boundWidth = this.width - this.margin.right - this.margin.left
     this.boundHeight = this.height - this.margin.top - this.margin.bottom
     this.wrapper = null
-    this.bounds = null
+    this.content = null
 
     this.xScale = d3.scaleLinear().domain([-10, 10]).range([0, this.boundWidth])
     this.yScale = d3
@@ -28,12 +28,12 @@ class CartesianCoordinate {
       .attr('height', this.height)
       .attr('viewBox', [0, 0, this.width, this.height])
 
-    this.bounds = this.wrapper
+    this.content = this.wrapper
       .append('g')
       .attr('transform', `translate(${this.margin.left}, ${this.margin.top})`)
 
-    this.bounds.append('g').call(this.xAxis.bind(this))
-    this.bounds.append('g').call(this.yAxis.bind(this))
+    this.content.append('g').call(this.xAxis.bind(this))
+    this.content.append('g').call(this.yAxis.bind(this))
     this.helperLine()
   }
 
@@ -104,7 +104,7 @@ class CartesianCoordinate {
   }
 
   helperLine() {
-    const overlay = this.bounds
+    const overlay = this.content
       .append('rect')
       .attr('width', this.boundWidth)
       .attr('height', this.boundHeight)
@@ -112,9 +112,9 @@ class CartesianCoordinate {
       .attr('fill', 'none')
       .attr('stroke', 'none')
 
-    const tooltip = this.bounds.append('text').attr('fill', 'gray')
+    const tooltip = this.content.append('text').attr('fill', 'gray')
 
-    const crosshair = this.bounds
+    const crosshair = this.content
       .append('g')
       .style('opacity', 1)
       .style('pointer-events', 'none')
