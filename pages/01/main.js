@@ -9,10 +9,9 @@ class Line {
 
     this.startPoint = null
     this.endPoint = null
-    this.path = {
-      start: null,
-      end: null
-    }
+    this.startPos = []
+    this.endPos = []
+    this.line = null
 
     this.render()
     this.draw()
@@ -27,42 +26,77 @@ class Line {
       .attr('viewBox', [0, 0, this.width, this.height])
   }
 
+  onDrag(point) {
+    const self = this
+    return d3
+      .drag()
+      .on('start', function () {
+        d3.select(this).attr('fill', 'orange')
+      })
+      .on('drag', function (e) {
+        d3.select(this).attr('transform', `translate(${e.x}, ${e.y})`)
+        if (point === 'start') {
+          self.line.attr('x1', e.x).attr('y1', e.y).attr('stroke', 'orange')
+        } else if (point === 'end') {
+          self.line.attr('x2', e.x).attr('y2', e.y).attr('stroke', 'orange')
+        }
+      })
+      .on('end', function () {
+        d3.select(this).attr('fill', null)
+        self.line.attr('stroke', 'black')
+      })
+  }
+
   draw() {
     this.wrapper.on('click', (e) => {
-      console.log('click', d3.pointer(e))
       const position = d3.pointer(e)
       if (!this.startPoint) {
         this.startPoint = this.wrapper
-          .append('circle')
+          .append('g')
           .attr('class', 'start')
-          .attr('r', 3)
+          .attr('transform', `translate(${position[0]}, ${position[1]})`)
           .attr('fill', 'black')
-          .attr('cx', position[0])
-          .attr('cy', position[1])
-        console.log('create start')
+          .call(this.onDrag('start'))
 
-        this.path.start = position
+        this.startPoint.append('circle').attr('r', 5).attr('cursor', 'pointer')
+        this.startPoint
+          .append('text')
+          .attr('class', 'start-label')
+          .attr('font-size', '.8em')
+          .attr('text-anchor', 'left')
+          .attr('fill-opacity', 0.8)
+          .attr('transform', 'translate(6, -6)')
+          .text('start')
+
+        this.startPos = position
         return
       }
       if (!this.endPoint) {
         this.endPoint = this.wrapper
-          .append('circle')
+          .append('g')
           .attr('class', 'end')
-          .attr('r', 3)
+          .attr('transform', `translate(${position[0]}, ${position[1]})`)
           .attr('fill', 'black')
-          .attr('cx', position[0])
-          .attr('cy', position[1])
+          .call(this.onDrag('end'))
 
-        console.log('create end')
-        this.path.end = position
+        this.endPoint.append('circle').attr('r', 5).attr('cursor', 'pointer')
+        this.endPoint
+          .append('text')
+          .attr('class', 'end-label')
+          .attr('font-size', '.8em')
+          .attr('text-anchor', 'left')
+          .attr('fill-opacity', 0.8)
+          .attr('transform', 'translate(6, -6)')
+          .text('end')
+        this.endPos = position
 
-        this.wrapper
+        this.line = this.wrapper
           .append('line')
           .attr('class', 'line')
-          .attr('x1', this.path.start[0])
-          .attr('y1', this.path.start[1])
-          .attr('x2', this.path.end[0])
-          .attr('y2', this.path.end[1])
+          .attr('x1', this.startPos[0])
+          .attr('y1', this.startPos[1])
+          .attr('x2', this.endPos[0])
+          .attr('y2', this.endPos[1])
           .attr('stroke', 'black')
           .attr('stroke-dasharray', '2,2')
         return
