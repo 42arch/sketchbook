@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>1. Lines</title>
+    <title>5. Coordination Systems</title>
     <link rel="stylesheet" href="./../style.css" />
     <style>
       .main {
@@ -21,44 +21,50 @@
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: center;
-        border: 1px dashed #aaa;
-        width: 60%;
-        min-width: 360px;
+        width: 100%;
+        min-width: 400px;
         height: 80%;
+        padding: 8px;
+      }
+
+      .item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
       }
 
       .renderer {
+        margin: 8px;
         display: flex;
         position: relative;
-        width: 100%;
-        height: 100%;
+        border: 1px dashed #aaa;
+        width: 400px;
+        height: 400px;
       }
 
-      #chart .u-line {
-        stroke: #aaa;
-        stroke-dasharray: 2 2;
-      }
-      #chart .u-point circle {
-        fill: orange;
-      }
-      #chart {
-        text-anchor: middle;
-        font: 11px var(--sans-serif);
-        user-select: none;
+      p {
+        z-index: 99;
+        width: 100%;
+        text-align: center;
       }
     </style>
   </head>
   <body>
     <div class="main">
-      <!-- <h3>Lines</h3> -->
-      <div class="container"></div>
-      <p>
-        <button id="line-btn">draw line</button>
-        <!-- <button id="rotate">rotate</button>
-        <button id="fit">fit</button>
-        <button id="update">update</button> -->
-      </p>
+      <h3>Coordinate Systems</h3>
+
+      <div class="container">
+        <div class="item">
+          <div id="curve1" class="renderer"></div>
+          <!-- <p>Line</p> -->
+        </div>
+        <div class="item">
+          <div id="curve1" class="renderer"></div>
+          <!-- <p>Polar Coordinate</p> -->
+        </div>
+      </div>
     </div>
-    <script type="module" src="./main2.js"></script>
+    <script type="module" src="./main.js"></script>
   </body>
 </html>

@@ -1,148 +1,74 @@
 import * as d3 from 'd3'
 
-const chartId = 'chart'
-const sx = 40,
-  sy = 100,
-  cx = 150,
-  cy = 280,
-  ex = 350,
-  ey = 20
+class Line {
+  constructor(id) {
+    this.id = id
+    this.wrapper = null
+    this.width = d3.select(id).node().offsetWidth
+    this.height = d3.select(id).node().offsetHeight
 
-const width = d3.select('.renderer').node().offsetWidth - 2
-const height = d3.select('.renderer').node().offsetHeight - 2
-
-const chart = d3
-  .select('.renderer')
-  .append('svg')
-  .attr('viewBox', `0 0 ${width} ${height}`)
-  .attr('width', width)
-// .attr('maxWidth', '100%')
-
-const path = d3.path()
-path.moveTo(sx, sy)
-path.quadraticCurveTo(cx, cy, ex, ey)
-
-d3.select('svg')
-  .append('path')
-  .attr('class', 'u-path')
-  .attr('stroke', 'orange')
-  .attr('stroke-width', 1)
-  .attr('fill', 'none')
-  .attr('d', path)
-
-const points = [
-  [sx, sy],
-  [cx, cy],
-  [ex, ey]
-]
-const labels = ['Start', 'Control', 'End']
-const lines = [
-  [points[0], points[1]],
-  [points[1], points[2]]
-]
-
-const lineCfg = [
-  {
-    type: 'quadratic-bezier',
-    points: [
-      {
-        corrd: [sx, sy],
-        label: 'Start'
-      },
-      {
-        corrd: [cx, cy],
-        label: 'Control'
-      },
-      {
-        corrd: [ex, ey],
-        label: 'End'
-      }
-    ]
-  }
-]
-
-draggable(lines, draw)
-
-function draw() {
-  const path = d3.path()
-  path.moveTo(...points[0])
-  path.quadraticCurveTo(...points[1], ...points[2])
-  return path
-}
-
-function draggable(lines, draw) {
-  const dist = (p, m) => {
-    return Math.sqrt((p[0] - m[0]) ** 2 + (p[1] - m[1]) ** 2)
-  }
-
-  let subject, dx, dy
-
-  const dragSubject = (event) => {
-    const p = d3.pointer(event.sourceEvent, chart)
-    subject = d3.least(points, (a, b) => dist(p, a) - dist(p, b))
-    if (subject) {
-      chart.style('cursor', 'hand').style('cursor', 'grab')
-    } else {
-      chart.style('cursor', null)
+    this.startPoint = null
+    this.endPoint = null
+    this.path = {
+      start: null,
+      end: null
     }
-    return subject
+
+    this.render()
+    this.draw()
   }
 
-  chart
-    .on('mousemove', (event) => dragSubject({ sourceEvent: event }))
-    .call(
-      d3
-        .drag()
-        .subject(dragSubject)
-        .on('start', (event) => {
-          if (subject) {
-            chart.style('cursor', 'grabbing')
-            dx = subject[0] - event.x
-            dy = subject[1] - event.y
-          }
-        })
-        .on('drag', (event) => {
-          if (subject) {
-            subject[0] = event.x + dx
-            subject[1] = event.y + dy
-          }
-        })
-        .on('end', () => {
-          chart.style('cursor', 'grab')
-        })
-        .on('start.render drag.render end.render', () => {
-          update(points, labels, lines, draw)
-        })
-    )
+  render() {
+    this.wrapper = d3
+      .select(this.id)
+      .append('svg')
+      .attr('width', this.width)
+      .attr('height', this.height)
+      .attr('viewBox', [0, 0, this.width, this.height])
+  }
+
+  draw() {
+    this.wrapper.on('click', (e) => {
+      console.log('click', d3.pointer(e))
+      const position = d3.pointer(e)
+      if (!this.startPoint) {
+        this.startPoint = this.wrapper
+          .append('circle')
+          .attr('class', 'start')
+          .attr('r', 3)
+          .attr('fill', 'black')
+          .attr('cx', position[0])
+          .attr('cy', position[1])
+        console.log('create start')
+
+        this.path.start = position
+        return
+      }
+      if (!this.endPoint) {
+        this.endPoint = this.wrapper
+          .append('circle')
+          .attr('class', 'end')
+          .attr('r', 3)
+          .attr('fill', 'black')
+          .attr('cx', position[0])
+          .attr('cy', position[1])
+
+        console.log('create end')
+        this.path.end = position
+
+        this.wrapper
+          .append('line')
+          .attr('class', 'line')
+          .attr('x1', this.path.start[0])
+          .attr('y1', this.path.start[1])
+          .attr('x2', this.path.end[0])
+          .attr('y2', this.path.end[1])
+          .attr('stroke', 'black')
+          .attr('stroke-dasharray', '2,2')
+        return
+      }
+    })
+  }
 }
 
-function update(points, labels, lines) {
-  chart.select('.u-path').attr('d', draw())
-  chart
-    .selectAll('.u-point')
-    .data(points)
-    .join((enter) =>
-      enter
-        .append('g')
-        .classed('u-point', true)
-        .call((g) => {
-          g.append('circle').attr('r', 3)
-          g.append('text')
-            .text((d, i) => labels[i])
-            .attr('dy', (d) => (d[1] > 100 ? 15 : -5))
-        })
-    )
-    .attr('transform', (d) => `translate(${d})`)
-
-  chart
-    .selectAll('.u-line')
-    .data(lines)
-    .join('line')
-    .attr('stroke', '#aaa')
-    .attr('stroke-dasharray', 2)
-    .attr('x1', (d) => d[0][0])
-    .attr('y1', (d) => d[0][1])
-    .attr('x2', (d) => d[1][0])
-    .attr('y2', (d) => d[1][1])
-    .classed('u-line', true)
-}
+const line = new Line('#curve1')
