@@ -24,6 +24,12 @@ class Line {
       .attr('width', this.width)
       .attr('height', this.height)
       .attr('viewBox', [0, 0, this.width, this.height])
+
+    this.line = this.wrapper
+      .append('line')
+      .attr('class', 'line')
+      .attr('stroke', 'orange')
+      .attr('stroke-dasharray', '2,2')
   }
 
   onDrag(point) {
@@ -90,15 +96,11 @@ class Line {
           .text('end')
         this.endPos = position
 
-        this.line = this.wrapper
-          .append('line')
-          .attr('class', 'line')
+        this.line
           .attr('x1', this.startPos[0])
           .attr('y1', this.startPos[1])
           .attr('x2', this.endPos[0])
           .attr('y2', this.endPos[1])
-          .attr('stroke', 'black')
-          .attr('stroke-dasharray', '2,2')
         return
       }
     })
@@ -119,6 +121,8 @@ class QuadraticBezier {
     this.endPos = []
     this.controlPos = []
     this.path = null
+    this.startLine = null
+    this.endLine = null
 
     this.render()
     this.draw()
@@ -131,12 +135,42 @@ class QuadraticBezier {
       .attr('width', this.width)
       .attr('height', this.height)
       .attr('viewBox', [0, 0, this.width, this.height])
+    this.path = this.wrapper
+      .append('path')
+      .attr('class', 'path')
+      .attr('fill', 'none')
+      .attr('stroke', 'orange')
+
+    this.startLine = this.wrapper
+      .append('line')
+      .attr('class', 'help-line')
+      .attr('stroke', '#aaa')
+      .attr('stroke-dasharray', '2,2')
+
+    this.endLine = this.wrapper
+      .append('line')
+      .attr('class', 'help-line')
+      .attr('stroke', '#aaa')
+      .attr('stroke-dasharray', '2,2')
   }
 
-  createPath(startX, startY, controlX, controlY, endX, endY) {
+  updatePath(startX, startY, controlX, controlY, endX, endY) {
+    this.startLine
+      .attr('x1', startX)
+      .attr('y1', startY)
+      .attr('x2', controlX)
+      .attr('y2', controlY)
+
+    this.endLine
+      .attr('x1', endX)
+      .attr('y1', endY)
+      .attr('x2', controlX)
+      .attr('y2', controlY)
+
     const path = d3.path()
     path.moveTo(startX, startY)
     path.quadraticCurveTo(controlX, controlY, endX, endY)
+    this.path.attr('d', path)
     return path.toString()
   }
 
@@ -149,19 +183,17 @@ class QuadraticBezier {
         d3.select(this).attr('fill', 'orange')
       })
       .on('drag', function (e) {
-        let path
         d3.select(this).attr('transform', `translate(${e.x}, ${e.y})`)
         if (point === 'start') {
-          path = self.createPath(e.x, e.y, ...self.controlPos, ...self.endPos)
+          self.updatePath(e.x, e.y, ...self.controlPos, ...self.endPos)
           self.startPos = [e.x, e.y]
         } else if (point === 'end') {
-          path = self.createPath(...self.startPos, ...self.controlPos, e.x, e.y)
+          self.updatePath(...self.startPos, ...self.controlPos, e.x, e.y)
           self.endPos = [e.x, e.y]
         } else if (point === 'control') {
-          path = self.createPath(...self.startPos, e.x, e.y, ...self.endPos)
+          self.updatePath(...self.startPos, e.x, e.y, ...self.endPos)
           self.controlPos = [e.x, e.y]
         }
-        self.path.attr('d', path)
       })
       .on('end', function () {
         d3.select(this).attr('fill', null)
@@ -216,8 +248,8 @@ class QuadraticBezier {
         this.controlPoint = this.wrapper
           .append('g')
           .attr('class', 'control')
-          .attr('transform', `translate(${position[0]}, ${position[1]})`)
           .attr('fill', 'black')
+          .attr('transform', `translate(${position[0]}, ${position[1]})`)
           .call(this.onDrag('control'))
 
         this.controlPoint
@@ -234,22 +266,7 @@ class QuadraticBezier {
           .text('control')
         this.controlPos = position
 
-        const path = d3.path()
-        path.moveTo(this.startPos[0], this.startPos[1])
-        path.quadraticCurveTo(
-          this.controlPos[0],
-          this.controlPos[1],
-          this.endPos[0],
-          this.endPos[1]
-        )
-
-        this.path = this.wrapper
-          .append('path')
-          .attr('class', 'u-path')
-          .attr('fill', 'none')
-          .attr('stroke', 'orange')
-          .attr('d', path.toString())
-
+        this.updatePath(...this.startPos, ...this.controlPos, ...this.endPos)
         return
       }
     })
