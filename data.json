@@ -1,19 +1,19 @@
 [
   {
     "name": "Curves",
-    "intro": "Draw Curves with D3.js",
+    "intro": "Draw different curves with D3.js",
     "page": "01",
     "tools": ["d3.js"]
   },
   {
     "name": "Force Directed Graph",
-    "intro": "Draw Force Directed Graph in SVG and Canvas",
+    "intro": "Draw force directed graph in SVG and Canvas",
     "page": "02",
     "tools": ["d3.js", "SVG", "Canvas"]
   },
   {
     "name": "3D Force Layout",
-    "intro": "3D Force Layout By Three.js",
+    "intro": "3D Force Layout powered By Three.js",
     "page": "03",
     "tools": ["three.js"]
   },
@@ -25,7 +25,7 @@
   },
   {
     "name": "3D Material Demo",
-    "intro": "Some Different Materails Provided By Three.js",
+    "intro": "Just some materails provided by Three.js",
     "page": "06",
     "tools": ["three.js"]
   },

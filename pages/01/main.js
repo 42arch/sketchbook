@@ -523,7 +523,7 @@ class CircularArc {
     this.centerPoint = null
     this.centerPos = []
     this.startAngle = 0
-    this.endAngle = 2 * Math.PI - 1
+    this.endAngle = Math.PI
     this.radius = 100
 
     this.render()
@@ -544,29 +544,8 @@ class CircularArc {
       .attr('stroke', 'orange')
   }
 
-  updatePath(centerX, centerY, startX, startY, endX, endY) {
-    const startAngle = Math.atan2(startY - centerX, startX - centerY),
-      endAngle = Math.atan2(endY - centerX, endX - centerY)
-    // radius = Math.sqrt((startY - centerX) ** 2 + (startX - centerY) ** 2)
-
-    startX = centerX + this.radius * Math.cos(startAngle)
-    startY = centerX + this.radius * Math.sin(startAngle)
-    endX = centerX + this.radius * Math.cos(endAngle)
-    endY = centerX + this.radius * Math.sin(endAngle)
-
-    this.startPos = [startX, startY]
-    this.endPos = [endX, endY]
-
-    console.log(77777, startX, startY)
-    this.startPoint.attr('transform', `translate(${(startX, startY)})`)
-    const path = d3.path()
-    path.arc(centerX, centerY, this.radius, startAngle, endAngle)
-    this.path.attr('d', path)
-  }
-
   onDrag(point) {
     const self = this
-
     return d3
       .drag()
       .on('start', function () {
@@ -575,26 +554,70 @@ class CircularArc {
       .on('drag', function (e) {
         d3.select(this).attr('transform', `translate(${e.x}, ${e.y})`)
         if (point === 'start') {
-          self.updatePath(...self.centerPos, e.x, e.y, ...self.endPos)
           self.startPos = [e.x, e.y]
+          self.startAngle = Math.atan2(
+            e.y - self.centerPos[1],
+            e.x - self.centerPos[0]
+          )
+          self.radius = Math.sqrt(
+            (e.x - self.centerPos[0]) ** 2 + (e.y - self.centerPos[1]) ** 2
+          )
+          self.endPos = [
+            self.centerPos[0] + self.radius * Math.cos(self.endAngle),
+            self.centerPos[1] + self.radius * Math.sin(self.endAngle)
+          ]
+          const path = d3.path()
+          path.arc(
+            self.centerPos[0],
+            self.centerPos[1],
+            self.radius,
+            self.startAngle,
+            self.endAngle
+          )
+          self.path.attr('d', path)
+          self.endPoint.attr(
+            'transform',
+            `translate(${self.endPos[0]}, ${self.endPos[1]})`
+          )
         } else if (point === 'end') {
-          self.updatePath(...self.centerPos, ...self.startPos, e.x, e.y)
           self.endPos = [e.x, e.y]
+          self.endAngle = Math.atan2(
+            e.y - self.centerPos[1],
+            e.x - self.centerPos[0]
+          )
+          self.radius = Math.sqrt(
+            (e.x - self.centerPos[0]) ** 2 + (e.y - self.centerPos[1]) ** 2
+          )
+          self.startPos = [
+            self.centerPos[0] + self.radius * Math.cos(self.startAngle),
+            self.centerPos[1] + self.radius * Math.sin(self.startAngle)
+          ]
+          const path = d3.path()
+          path.arc(
+            self.centerPos[0],
+            self.centerPos[1],
+            self.radius,
+            self.startAngle,
+            self.endAngle
+          )
+          self.path.attr('d', path)
+          self.startPoint.attr(
+            'transform',
+            `translate(${self.startPos[0]}, ${self.startPos[1]})`
+          )
         } else if (point === 'center') {
           const startX = e.x + self.radius * Math.cos(self.startAngle),
             startY = e.y + self.radius * Math.sin(self.startAngle),
             endX = e.x + self.radius * Math.cos(self.endAngle),
             endY = e.y + self.radius * Math.sin(self.endAngle)
-          // self.updatePath(e.x, e.y, ...self.startPos, ...self.endPos)
-
-          console.log(7777, e.x, e.y, startX, startY, endX, endY)
-          self.startPoint.attr('transform', `translate(${(startX, startY)})`)
-          self.endPoint.attr('transform', `translate(${(endX, endY)})`)
-
-          const path = d3.path()
-          path.arc(e.x, e.y, this.radius, this.startAngle, this.endAngle)
-          self.path.attr('d', path)
           self.centerPos = [e.x, e.y]
+          self.startPos = [startX, startY]
+          self.endPos = [endX, endY]
+          self.startPoint.attr('transform', `translate(${startX},${startY})`)
+          self.endPoint.attr('transform', `translate(${endX}, ${endY})`)
+          const path = d3.path()
+          path.arc(e.x, e.y, self.radius, self.startAngle, self.endAngle)
+          self.path.attr('d', path)
         }
       })
       .on('end', function () {
@@ -679,7 +702,6 @@ class CircularArc {
           .attr('fill-opacity', 0.8)
           .attr('transform', 'translate(6, -6)')
           .text('end')
-
         return
       }
     })
