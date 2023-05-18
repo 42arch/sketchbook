@@ -4,52 +4,17 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>07. Basic Charts</title>
+    <title>7. Blob</title>
     <link rel="stylesheet" href="./../style.css" />
-    <style>
-      .main {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-      }
-
-      .container {
-        margin: 0;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        border: 1px dashed #aaa;
-        width: 60%;
-        min-width: 360px;
-        height: 400px;
-        padding: 8px;
-      }
-
-      .renderer {
-        display: flex;
-        position: relative;
-        width: 100%;
-        height: 90%;
-      }
-
-      .container p {
-        margin: 6px;
-      }
-    </style>
   </head>
   <body>
     <div class="main">
-      <h3>Basic Charts</h3>
+      <h3>Blob</h3>
+
       <div class="container">
-        <div id="chart1" class="renderer"></div>
-        <p>Line Chart -- Washington Weather</p>
-      </div>
-      <div class="container">
-        <div id="chart2" class="renderer"></div>
+        <div class="item">
+          <div id="blob" class="renderer"></div>
+        </div>
       </div>
     </div>
     <script type="module" src="./main.js"></script>
