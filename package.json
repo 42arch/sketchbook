@@ -25,6 +25,7 @@
     "d3-force-3d": "^3.0.5",
     "element-resize-detector": "^1.2.4",
     "lil-gui": "^0.18.1",
+    "p5": "^1.6.0",
     "three": "^0.150.1",
     "three-forcegraph": "^1.41.5",
     "three-render-objects": "^1.28.1"
