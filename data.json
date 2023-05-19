@@ -50,8 +50,8 @@
     ]
   },
   {
-    "name": "Basic Charts",
-    "intro": "Some Basic Charts made with d3.js",
+    "name": "Blob",
+    "intro": "Animated SVG blobs",
     "page": "07",
     "tools": [
       "d3.js"
