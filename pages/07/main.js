@@ -1,15 +1,15 @@
 import * as d3 from 'd3'
 
 class Blob {
-  constructor(id, color) {
+  constructor(id, color, complexity, contrast) {
     this.id = id
     this.color = color
     this.margin = { top: 20, right: 30, bottom: 20, left: 30 }
-    this.data = [
-      5.447060485384432, 4.971556756831614, 5.356425214200197,
-      5.224937072128102, 5.2225645937212475, 4.70468448669522,
-      3.5719921252670392, 5.5701623121438315
-    ]
+    this.complexity = complexity
+    this.contrast = contrast
+    this.data = this.updateData(this.complexity, this.contrast)
+
+    console.log(22222, this.data)
     this.width = d3.select(id).node().offsetWidth
     this.height = d3.select(id).node().offsetHeight
     this.boundWidth = this.width - this.margin.right - this.margin.left
@@ -17,7 +17,6 @@ class Blob {
     this.wrapper = null
     this.content = null
     this.path = null
-
     this.render()
   }
 
@@ -56,6 +55,23 @@ class Blob {
       .radius((d) => rScale(d))
       .angle((d, i) => i * angleSlice)(data)
   }
+
+  updateData(n, c) {
+    const maxValue = 10,
+      minValue = 0,
+      offset = 1
+    const noise = Array.from({ length: n }, d3.randomNormal(0, c))
+    const base = Array(n).fill(5)
+    const vals = d3.zip(base, noise).map((vals) => d3.sum(vals))
+    console.log(1111, vals)
+    return vals.map((d) =>
+      d < minValue + offset
+        ? minValue + offset
+        : d > maxValue - offset
+        ? maxValue - offset
+        : d
+    )
+  }
 }
 
-const blob = new Blob('#blob', '#08BDBA')
+const blob = new Blob('#blob', '#08BDBA', 12, 0.5)
