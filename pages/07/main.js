@@ -7,9 +7,8 @@ class Blob {
     this.margin = { top: 20, right: 30, bottom: 20, left: 30 }
     this.complexity = complexity
     this.contrast = contrast
-    this.data = this.updateData(this.complexity, this.contrast)
+    this.data = this.updateData()
 
-    console.log(22222, this.data)
     this.width = d3.select(id).node().offsetWidth
     this.height = d3.select(id).node().offsetHeight
     this.boundWidth = this.width - this.margin.right - this.margin.left
@@ -18,6 +17,7 @@ class Blob {
     this.content = null
     this.path = null
     this.render()
+    this.animate()
   }
 
   render() {
@@ -56,14 +56,16 @@ class Blob {
       .angle((d, i) => i * angleSlice)(data)
   }
 
-  updateData(n, c) {
+  updateData() {
     const maxValue = 10,
       minValue = 0,
       offset = 1
-    const noise = Array.from({ length: n }, d3.randomNormal(0, c))
-    const base = Array(n).fill(5)
+    const noise = Array.from(
+      { length: this.complexity },
+      d3.randomNormal(0, this.contrast)
+    )
+    const base = Array(this.complexity).fill(5)
     const vals = d3.zip(base, noise).map((vals) => d3.sum(vals))
-    console.log(1111, vals)
     return vals.map((d) =>
       d < minValue + offset
         ? minValue + offset
@@ -72,6 +74,36 @@ class Blob {
         : d
     )
   }
+
+  animate() {
+    const interval = setInterval(() => {
+      this.data = this.updateData(this.complexity, this.contrast)
+      this.path
+        .transition()
+        .duration(1000)
+        .ease(d3.easeCubicInOut)
+        .attr('d', this.radarLine(this.data))
+    }, 1000)
+  }
+
+  updateComplexity(complexity) {
+    this.complexity = complexity
+    this.data = this.updateData()
+    this.path.attr('d', this.radarLine(this.data))
+  }
+  updateContrast(contrast) {
+    this.contrast = contrast
+    this.data = this.updateData()
+    this.path.attr('d', this.radarLine(this.data))
+  }
 }
 
 const blob = new Blob('#blob', '#08BDBA', 12, 0.5)
+
+document.getElementById('complexity').addEventListener('change', (e) => {
+  blob.updateComplexity(Number(e.target.value))
+})
+
+document.getElementById('contrast').addEventListener('change', (e) => {
+  blob.updateContrast(Number(e.target.value))
+})
