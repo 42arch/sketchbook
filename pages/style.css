@@ -43,6 +43,22 @@ body {
   height: 600px;
 }
 
+.operate-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.operate {
+  display: flex;
+  align-items: center;
+  margin: 8px;
+}
+
+.operate .label {
+  width: 120px;
+  text-align: left;
+}
+
 p {
   z-index: 99;
   width: 100%;
