@@ -82,34 +82,34 @@ class CanvasGraph {
   }
 
   zoomed(currentEvent) {
+    console.log('zoomed')
     this.transform = currentEvent.transform
     this.simulationUpdate()
   }
 
   dragSubject(currentEvent) {
     const node = this.simulation.find(
-      this.transform.invertX(currentEvent.x),
-      this.transform.invertY(currentEvent.y),
+      currentEvent.sourceEvent.offsetX,
+      currentEvent.sourceEvent.offsetY,
       5
     )
-
-    if (node) {
-      node.x = this.transform.applyX(node.x)
-      node.y = this.transform.applyY(node.y)
-    }
 
     return node
   }
 
   dragStarted(currentEvent) {
     if (!currentEvent.active) this.simulation.alphaTarget(0.3).restart()
-    currentEvent.subject.fx = this.transform.invertX(currentEvent.subject.x)
-    currentEvent.subject.fy = this.transform.invertY(currentEvent.subject.y)
+    currentEvent.subject.fx = currentEvent.subject.x
+    currentEvent.subject.fy = currentEvent.subject.y
+    // currentEvent.subject.fx = this.transform.invertX(currentEvent.subject.x)
+    // currentEvent.subject.fy = this.transform.invertY(currentEvent.subject.y)
   }
 
   dragged(currentEvent) {
-    currentEvent.subject.fx = this.transform.invertX(currentEvent.x)
-    currentEvent.subject.fy = this.transform.invertY(currentEvent.y)
+    // currentEvent.subject.fx = this.transform.invertX(currentEvent.x)
+    // currentEvent.subject.fy = this.transform.invertY(currentEvent.y)
+    currentEvent.subject.fx = currentEvent.x
+    currentEvent.subject.fy = currentEvent.y
   }
 
   dragEnded(currentEvent) {
@@ -220,6 +220,8 @@ class SvgGraph {
   zoomed(currentEvent) {
     // this.transform = currentEvent.transform
     d3.selectAll('g').attr('transform', currentEvent.transform)
+
+    console.log('zoomed', currentEvent)
   }
 
   dragStarted(currentEvent) {
