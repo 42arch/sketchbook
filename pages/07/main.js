@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import GUI from 'lil-gui'
 
 class Blob {
   constructor(id, color, complexity, contrast) {
@@ -16,8 +17,8 @@ class Blob {
     this.wrapper = null
     this.content = null
     this.path = null
+    this.interval
     this.render()
-    this.animate()
   }
 
   render() {
@@ -75,15 +76,24 @@ class Blob {
     )
   }
 
-  animate() {
-    const interval = setInterval(() => {
-      this.data = this.updateData(this.complexity, this.contrast)
-      this.path
-        .transition()
-        .duration(1000)
-        .ease(d3.easeCubicInOut)
-        .attr('d', this.radarLine(this.data))
-    }, 1000)
+  animate(isAnimate) {
+    if (isAnimate) {
+      this.interval = setInterval(() => {
+        this.data = this.updateData(this.complexity, this.contrast)
+        this.path
+          .transition()
+          .duration(1000)
+          .ease(d3.easeCubicInOut)
+          .attr('d', this.radarLine(this.data))
+      }, 1000)
+    } else {
+      clearInterval(this.interval)
+    }
+  }
+
+  updateColor(color) {
+    this.color = color
+    this.path.attr('fill', this.color).attr('stroke', this.color)
   }
 
   updateComplexity(complexity) {
@@ -98,12 +108,24 @@ class Blob {
   }
 }
 
-const blob = new Blob('#blob', '#08BDBA', 12, 0.5)
-
-document.getElementById('complexity').addEventListener('change', (e) => {
-  blob.updateComplexity(Number(e.target.value))
+const gui = new GUI()
+const params = {
+  color: '#08BDBA',
+  complexity: 12,
+  contrast: 0.5,
+  animate: false
+}
+const blob = new Blob('#blob', params.color, params.complexity, params.contrast)
+gui.addColor(params, 'color').onChange((v) => {
+  blob.updateColor(v)
 })
 
-document.getElementById('contrast').addEventListener('change', (e) => {
-  blob.updateContrast(Number(e.target.value))
+gui.add(params, 'complexity', 0, 50, 1).onChange((v) => {
+  blob.updateComplexity(v)
+})
+gui.add(params, 'contrast', 0, 1, 0.01).onChange((v) => {
+  blob.updateContrast(v)
+})
+gui.add(params, 'animate').onChange((v) => {
+  blob.animate(v)
 })
