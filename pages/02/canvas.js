@@ -1,10 +1,11 @@
 import * as d3 from 'd3'
 
 export default class CanvasGraph {
-  constructor(id, data) {
+  constructor(id, data, options) {
     this.id = id
     this.nodes = data.nodes.map((d) => Object.assign({}, d))
     this.links = data.links.map((d) => Object.assign({}, d))
+    this.options = options
     this.nodeRadius = 8
     this.width = 0
     this.height = 0
@@ -59,7 +60,10 @@ export default class CanvasGraph {
         d3.forceLink(this.links).id((d) => d.id)
       )
       .force('charge', d3.forceManyBody().strength(-100))
-      .force('center', d3.forceCenter(this.width / 2, this.height / 2))
+    this.simulation.force(
+      'center',
+      d3.forceCenter(this.width / 2, this.height / 2)
+    )
     this.simulation.on('tick', this.tick.bind(this))
     // this.simulation.restart()
   }
@@ -129,7 +133,20 @@ export default class CanvasGraph {
 
   dragEnded(currentEvent) {
     if (!currentEvent.active) this.simulation.alphaTarget(0)
-    currentEvent.subject.fx = null
-    currentEvent.subject.fy = null
+    if (this.options.sticky) {
+      currentEvent.subject.fx = currentEvent.x
+      currentEvent.subject.fy = currentEvent.y
+    } else {
+      currentEvent.subject.fx = null
+      currentEvent.subject.fy = null
+    }
+  }
+
+  force(forceOptions) {
+    this.simulation
+      .force('x', d3.forceX(forceOptions.x))
+      .force('y', d3.forceX(forceOptions.y))
+      .force('collide', d3.forceCollide(forceOptions.collide))
+    this.simulation.restart()
   }
 }
