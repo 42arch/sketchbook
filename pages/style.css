@@ -36,7 +36,10 @@ body {
 
 .renderer {
   margin: 8px;
+  overflow: hidden;
   display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   border: 1px dashed #aaa;
   width: 600px;
