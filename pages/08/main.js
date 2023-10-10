@@ -34,6 +34,38 @@ function create1DNoise() {
   )
 }
 
+function create1DBezier() {
+  const element = document.getElementById('noise1-bezier')
+  let t
+
+  new p5((p) => {
+    p.setup = () => {
+      p.createCanvas(600, 600)
+      p.stroke(0, 18)
+      p.noFill()
+      t = 0
+    }
+
+    p.draw = () => {
+      let x1 = p.width * p.noise(t + 15)
+      let x2 = p.width * p.noise(t + 25)
+      let x3 = p.width * p.noise(t + 35)
+      let x4 = p.width * p.noise(t + 45)
+      let y1 = p.height * p.noise(t + 55)
+      let y2 = p.height * p.noise(t + 65)
+      let y3 = p.height * p.noise(t + 75)
+      let y4 = p.height * p.noise(t + 85)
+
+      p.bezier(x1, y1, x2, y2, x3, y3, x4, y4)
+      t += 0.005
+
+      if (p.frameCount % 1000 == 0) {
+        p.background(255)
+      }
+    }
+  }, element)
+}
+
 function create2DNoise() {
   const element = document.getElementById('noise2')
 
@@ -70,14 +102,15 @@ function create3DNoise() {
   const element = document.getElementById('noise3')
 
   new p5((p) => {
-    const w = 1000
-    const h = 800
+    const w = 1400
+    const h = 1400
     let flying = 0
     let cols, rows
     let scl = 20
     let terrain = []
 
     p.setup = () => {
+      p.frameRate(30)
       p.createCanvas(600, 600, p.WEBGL)
       cols = w / scl
       rows = h / scl
@@ -85,13 +118,13 @@ function create3DNoise() {
     }
 
     p.draw = () => {
-      flying -= 0.1
+      flying -= 0.2
       let yoff = flying
 
       for (let y = 0; y < rows; y++) {
         let xoff = 0
         for (let x = 0; x < cols; x++) {
-          terrain[x][y] = p.map(p.noise(xoff, yoff), 0, 1, -100, 100)
+          terrain[x][y] = p.map(p.noise(xoff, yoff), 0, 1, -60, 60)
           xoff += 0.2
         }
         yoff += 0.2
@@ -105,6 +138,7 @@ function create3DNoise() {
       p.translate(-p.width / 2 - 100, -p.height / 2 + 50)
 
       for (let y = 0; y < rows - 1; y++) {
+        p.smooth()
         p.beginShape(p.TRIANGLE_STRIP)
 
         for (let x = 0; x < cols; x++) {
@@ -126,5 +160,6 @@ function create2DArray(cols, rows) {
 }
 
 create1DNoise()
+create1DBezier()
 create2DNoise()
 create3DNoise()
