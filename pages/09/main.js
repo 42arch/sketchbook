@@ -119,8 +119,14 @@ class Contour {
   }
 
   update(bandwidth, thresholds, colorScheme) {
+    const colorSchemeMap = {
+      1: d3.interpolateYlGnBu,
+      2: d3.interpolateCool,
+      3: d3.interpolateReds,
+      4: d3.interpolateYlOrBr
+    }
+
     // this.wrapper.selectAll('.content').remove()
-    console.log('update')
 
     this.bandwidth = bandwidth
     this.thresholds = thresholds
@@ -134,8 +140,10 @@ class Contour {
 
     this.color = d3.scaleSequential(
       d3.extent(this.contours, (d) => d.value),
-      d3.interpolateYlGnBu
+      colorSchemeMap[colorScheme]
     )
+
+    console.log('update', this.color(2))
 
     // this.wrapper
     //   .select('.content')
@@ -163,6 +171,10 @@ class Contour {
         (exit) => exit.remove()
       )
       .attr('d', d3.geoPath())
+
+    updatedPaths
+      .attr('fill', (d) => this.color(d.value))
+      .attr('stroke', (d) => d3.lab(this.color(d.value)).darker(1))
   }
 }
 
@@ -170,7 +182,8 @@ const gui = new GUI()
 const params = {
   color: '#08BDBA',
   bandwidth: 20.4939,
-  thresholds: 20
+  thresholds: 20,
+  colorScheme: '1'
 }
 
 const contour = new Contour(
@@ -186,6 +199,11 @@ const contour = new Contour(
 gui.add(params, 'bandwidth', 0, 100, 1).onChange((v) => {
   contour.update(v, params.thresholds)
 })
-gui.add(params, 'thresholds', 0, 40, 1).onChange((v) => {
-  contour.update(params.bandwidth, v)
+
+gui.add(params, 'colorScheme', ['1', '2', '3', '4']).onChange((v) => {
+  contour.update(params.bandwidth, params.thresholds, v)
 })
+
+// gui.add(params, 'thresholds', 0, 40, 1).onChange((v) => {
+//   contour.update(params.bandwidth, v)
+// })
