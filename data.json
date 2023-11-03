@@ -67,18 +67,18 @@
   },
   {
     "name": "Contour",
-    "intro": "Contour",
+    "intro": "Density Contour and Dem Contour",
     "page": "09",
     "tools": [
       "d3.js"
     ]
   },
   {
-    "name": "Contour",
-    "intro": "Contour",
+    "name": "Game of Life",
+    "intro": "Conway's Game of Life",
     "page": "10",
     "tools": [
-      "d3.js"
+      "p5.js"
     ]
   }
 ]
