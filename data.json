@@ -88,5 +88,13 @@
     "tools": [
       "canvas"
     ]
+  },
+  {
+    "name": "Pixel Painting",
+    "intro": "Pixel Painting",
+    "page": "12",
+    "tools": [
+      "canvas"
+    ]
   }
 ]

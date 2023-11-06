@@ -1,7 +1,6 @@
 import * as d3 from 'd3'
 import GUI from 'lil-gui'
 import data from './../data/faithful.json'
-import { debounce } from '../../utils/debounce'
 
 class Contour {
   constructor(id, margin, data, xField, yField, bandwidth, thresholds) {
