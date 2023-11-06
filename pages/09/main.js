@@ -197,13 +197,13 @@ const contour = new Contour(
 )
 
 gui.add(params, 'bandwidth', 0, 100, 1).onChange((v) => {
-  contour.update(v, params.thresholds)
+  contour.update(v, params.thresholds, params.colorScheme)
+})
+
+gui.add(params, 'thresholds', 0, 40, 1).onChange((v) => {
+  contour.update(params.bandwidth, v, params.colorScheme)
 })
 
 gui.add(params, 'colorScheme', ['1', '2', '3', '4']).onChange((v) => {
   contour.update(params.bandwidth, params.thresholds, v)
 })
-
-// gui.add(params, 'thresholds', 0, 40, 1).onChange((v) => {
-//   contour.update(params.bandwidth, v)
-// })

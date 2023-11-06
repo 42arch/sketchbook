@@ -80,5 +80,13 @@
     "tools": [
       "p5.js"
     ]
+  },
+  {
+    "name": "Ping Pong",
+    "intro": "A Classic Ping Pong Game",
+    "page": "11",
+    "tools": [
+      "canvas"
+    ]
   }
 ]
