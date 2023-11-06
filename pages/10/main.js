@@ -74,10 +74,13 @@ function initGame() {
             let neighbors = countNeighbors(grid, i, j)
 
             if (state == 0 && neighbors == 3) {
+              // 邻居等于3，繁衍
               next[i][j] = 1
             } else if (state == 1 && (neighbors < 2 || neighbors > 3)) {
+              // 邻居小于2或大于3，死亡
               next[i][j] = 0
             } else {
+              // 保持现状
               next[i][j] = state
             }
           }

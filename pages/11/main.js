@@ -9,7 +9,7 @@ let ball = {
   y: height / 2,
   radius: 8,
   speedX: 0,
-  speedY: -2
+  speedY: -3
 }
 
 const paddle = {
