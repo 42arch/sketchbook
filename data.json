@@ -4,6 +4,7 @@
     "intro": "Draw different curves with D3.js",
     "page": "01",
     "tools": [
+      "svg",
       "d3.js"
     ]
   },
@@ -13,8 +14,8 @@
     "page": "02",
     "tools": [
       "d3.js",
-      "SVG",
-      "Canvas"
+      "svg",
+      "canvas"
     ]
   },
   {
@@ -30,7 +31,7 @@
     "intro": "Gooey effect with SVG filters",
     "page": "04",
     "tools": [
-      "SVG"
+      "svg"
     ]
   },
   {
@@ -95,6 +96,14 @@
     "page": "12",
     "tools": [
       "canvas"
+    ]
+  },
+  {
+    "name": "Delaunay",
+    "intro": "Delaunay",
+    "page": "13",
+    "tools": [
+      "d3.js"
     ]
   }
 ]

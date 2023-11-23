@@ -79,6 +79,7 @@ h6 {
 .project p {
   opacity: 80%;
   margin: 8px 0 0 0;
+  height: 42px;
 }
 
 .project:hover p {
