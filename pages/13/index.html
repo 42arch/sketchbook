@@ -7,10 +7,13 @@
     <title>13. Delaunay</title>
     <link rel="stylesheet" href="./../style.css" />
     <style>
-      #chart {
+      .container {
+        gap: 16px;
+      }
+      .renderer {
         margin: 0;
-        height: 600px;
-        width: 800px;
+        height: 800px;
+        width: 600px;
         border: none;
       }
     </style>
@@ -20,8 +23,12 @@
       <h3>Delaunay</h3>
       <div class="container">
         <div class="item">
-          <div id="chart" class="renderer"></div>
-          <!-- <p></p> -->
+          <div id="voronoi" class="renderer"></div>
+          <p>voronoi</p>
+        </div>
+        <div class="item">
+          <div id="delaunay" class="renderer"></div>
+          <p>delaunay</p>
         </div>
       </div>
     </div>
