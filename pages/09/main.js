@@ -1,208 +1,64 @@
-import * as d3 from 'd3'
-import GUI from 'lil-gui'
-import data from './../data/faithful.json'
+import p5 from 'p5'
 
-class Contour {
-  constructor(id, margin, data, xField, yField, bandwidth, thresholds) {
-    this.id = id
-    this.data = data
-    this.margin = margin
-    this.xField = xField
-    this.yField = yField
-    this.bandwidth = bandwidth
-    this.thresholds = thresholds
+function createTerrain() {
+  const element = document.getElementById('noise3')
 
-    this.width = d3.select(id).node().offsetWidth
-    this.height = d3.select(id).node().offsetHeight
+  new p5((p) => {
+    const w = 1400
+    const h = 1400
+    let flying = 0
+    let cols, rows
+    let scl = 20
+    let terrain = []
 
-    this.wrapper = null
-    this.path = null
-
-    this.xScale = d3
-      .scaleLinear()
-      .domain(d3.extent(this.data, (d) => d[this.xField]))
-      .nice()
-      .rangeRound([this.margin, this.width - this.margin])
-
-    this.yScale = d3
-      .scaleLinear()
-      .domain(d3.extent(this.data, (d) => d[this.yField]))
-      .nice()
-      .rangeRound([this.height - this.margin, this.margin])
-
-    this.contours = d3
-      .contourDensity()
-      .x((d) => this.xScale(d[this.xField]))
-      .y((d) => this.yScale(d[this.yField]))
-      .size([this.width, this.height])
-      .bandwidth(this.bandwidth)
-      .thresholds(this.thresholds)(this.data)
-
-    this.color = d3.scaleSequential(
-      d3.extent(this.contours, (d) => d.value),
-      d3.interpolateYlGnBu
-    )
-
-    this.render()
-  }
-
-  render() {
-    this.wrapper = d3
-      .select(this.id)
-      .append('svg')
-      .attr('width', this.width)
-      .attr('height', this.height)
-      .attr('viewBox', [0, 0, this.width, this.height])
-    this.wrapper
-      .append('g')
-      .attr('transform', `translate(0,${this.height - this.margin})`)
-      .call(d3.axisBottom(this.xScale).tickSizeOuter(0))
-      // .call((g) => g.select('.domain').remove())
-      .call((g) =>
-        g
-          .select('.tick:last-of-type text')
-          .clone()
-          .attr('y', -3)
-          .attr('dy', null)
-          .attr('font-weigth', 'bold')
-          .attr('z-index', -1)
-          .text('Idle (min.)')
-      )
-
-    this.wrapper
-      .append('g')
-      .attr('transform', `translate(${this.margin}, 0)`)
-      .call(d3.axisLeft(this.yScale).tickSizeOuter(0))
-      // .call((g) => g.select('.domain').remove())
-      .call((g) =>
-        g
-          .select('.tick:last-of-type text')
-          .clone()
-          .attr('x', 3)
-          .attr('text-anchor', 'start')
-          .attr('font-weight', 'bold')
-          .text('Erupting (min.)')
-      )
-
-    this.wrapper
-      .append('g')
-      .attr('class', 'content')
-      .attr('fill', 'none')
-      .attr('stroke-linejoin', 'round')
-      .selectAll()
-      .data(this.contours)
-      .join('path')
-      .attr('class', 'contour-path')
-      .attr('stroke', (d) => d3.lab(this.color(d.value)).darker(1))
-      .attr('stroke-width', (d, i) => (i % 5 ? 0.25 : 1))
-      .attr('d', d3.geoPath())
-      .attr('fill', (d) => {
-        return this.color(d.value)
-      })
-      .exit()
-      .remove()
-
-    this.wrapper
-      .append('g')
-      .attr('class', 'points')
-      .attr('stroke', 'white')
-      .selectAll()
-      .data(this.data)
-      .join('circle')
-      .attr('cx', (d) => this.xScale(d[this.xField]))
-      .attr('cy', (d) => this.yScale(d[this.yField]))
-      .attr('r', '2')
-      .attr('fill', 'grey')
-      .attr('opacity', 0.9)
-      .attr('z-index', 999)
-  }
-
-  update(bandwidth, thresholds, colorScheme) {
-    const colorSchemeMap = {
-      1: d3.interpolateYlGnBu,
-      2: d3.interpolateCool,
-      3: d3.interpolateReds,
-      4: d3.interpolateYlOrBr
+    p.setup = () => {
+      p.frameRate(30)
+      p.createCanvas(600, 600, p.WEBGL)
+      cols = w / scl
+      rows = h / scl
+      terrain = create2DArray(cols, rows)
     }
 
-    // this.wrapper.selectAll('.content').remove()
+    p.draw = () => {
+      flying -= 0.2
+      let yoff = flying
 
-    this.bandwidth = bandwidth
-    this.thresholds = thresholds
-    this.contours = d3
-      .contourDensity()
-      .x((d) => this.xScale(d[this.xField]))
-      .y((d) => this.yScale(d[this.yField]))
-      .size([this.width, this.height])
-      .bandwidth(this.bandwidth)
-      .thresholds(this.thresholds)(this.data)
+      for (let y = 0; y < rows; y++) {
+        let xoff = 0
+        for (let x = 0; x < cols; x++) {
+          terrain[x][y] = p.map(p.noise(xoff, yoff), 0, 1, -60, 60)
+          xoff += 0.2
+        }
+        yoff += 0.2
+      }
 
-    this.color = d3.scaleSequential(
-      d3.extent(this.contours, (d) => d.value),
-      colorSchemeMap[colorScheme]
-    )
+      p.background(0)
+      p.stroke(255)
+      p.noFill()
+      p.rotateX(p.PI / 3)
+      // 将坐标原点移动到左上角
+      p.translate(-p.width / 2 - 100, -p.height / 2 + 50)
 
-    console.log('update', this.color(2))
+      for (let y = 0; y < rows - 1; y++) {
+        p.smooth()
+        p.beginShape(p.TRIANGLE_STRIP)
 
-    // this.wrapper
-    //   .select('.content')
-    //   .selectAll('.contour-path')
-    //   .data(this.contours)
-    //   .join('path')
-    //   .attr('d', d3.geoPath())
-    //   .attr('fill', (d) => this.color(d.value))
+        for (let x = 0; x < cols; x++) {
+          p.vertex(x * scl, y * scl, terrain[x][y])
+          p.vertex(x * scl, (y + 1) * scl, terrain[x][y + 1])
+        }
+        p.endShape()
+      }
+    }
+  }, element)
+}
 
-    const updatedPaths = this.wrapper
-      .select('.content')
-      .selectAll('.contour-path')
-      .data(this.contours)
-
-    updatedPaths
-      .join(
-        (enter) =>
-          enter
-            .append('path')
-            .attr('class', 'contour-path')
-            .attr('fill', (d) => this.color(d.value))
-            .attr('stroke', (d) => d3.lab(this.color(d.value)).darker(1))
-            .attr('stroke-width', (d, i) => (i % 5 ? 0.25 : 1)),
-        (update) => update,
-        (exit) => exit.remove()
-      )
-      .attr('d', d3.geoPath())
-
-    updatedPaths
-      .attr('fill', (d) => this.color(d.value))
-      .attr('stroke', (d) => d3.lab(this.color(d.value)).darker(1))
+function create2DArray(cols, rows) {
+  let arr = new Array(cols)
+  for (let i = 0; i < cols; i++) {
+    arr[i] = new Array(rows)
   }
+  return arr
 }
 
-const gui = new GUI()
-const params = {
-  color: '#08BDBA',
-  bandwidth: 20.4939,
-  thresholds: 20,
-  colorScheme: '1'
-}
-
-const contour = new Contour(
-  '#contour1',
-  60,
-  data,
-  'waiting',
-  'eruptions',
-  params.bandwidth,
-  params.thresholds
-)
-
-gui.add(params, 'bandwidth', 0, 100, 1).onChange((v) => {
-  contour.update(v, params.thresholds, params.colorScheme)
-})
-
-gui.add(params, 'thresholds', 0, 40, 1).onChange((v) => {
-  contour.update(params.bandwidth, v, params.colorScheme)
-})
-
-gui.add(params, 'colorScheme', ['1', '2', '3', '4']).onChange((v) => {
-  contour.update(params.bandwidth, params.thresholds, v)
-})
+createTerrain()

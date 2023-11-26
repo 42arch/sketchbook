@@ -1,107 +1,142 @@
-import GUI from 'lil-gui'
-
+const canvas = document.createElement('canvas')
+const context = canvas.getContext('2d')
 const width = 600
 const height = 600
 
-class PixelBoard {
-  constructor(id, options) {
-    this.id = id
-    this.color = options.color || 'black'
-    this.resolution = options.resolution || 10
-    this.isDrawing = false
-    this.isErasing = false
-    this.canvas = document.createElement('canvas')
-    this.context = this.canvas.getContext('2d')
-    this.init()
+let moved = false
+let ball = {
+  x: width / 2,
+  y: height / 2,
+  radius: 8,
+  speedX: 0,
+  speedY: -3
+}
+
+const paddle = {
+  width: 90,
+  height: 10,
+  x: (width - 90) / 2
+}
+
+function createCanvas() {
+  const element = document.getElementById('game')
+  element.appendChild(canvas)
+  canvas.width = width
+  canvas.height = height
+
+  canvas.addEventListener('mousemove', handleMove, true)
+}
+
+function handleMove(e) {
+  moved = true
+  if (e.layerX + paddle.width / 2 >= width) {
+    paddle.x = width - paddle.width
+  } else if (e.layerX - paddle.width / 2 <= 0) {
+    paddle.x = 0
+  } else {
+    paddle.x = e.layerX - paddle.width / 2
   }
+}
 
-  init() {
-    const element = document.getElementById(this.id)
-    element.appendChild(this.canvas)
-    this.canvas.width = width
-    this.canvas.height = height
+function intersection() {
+  return ball.x - (paddle.x + paddle.width / 2)
+}
 
-    this.canvas.addEventListener('mousedown', this.startDrawing.bind(this))
-    this.canvas.addEventListener('mousemove', this.draw.bind(this))
-    this.canvas.addEventListener('mouseup', this.stopDrawing.bind(this))
-  }
+function renderCanvas() {
+  context.fillStyle = '#000000'
+  context.fillRect(0, 0, width, height)
+  context.beginPath()
+  context.setLineDash([8])
+  context.moveTo(0, height / 2)
+  context.lineTo(width, height / 2)
+  context.strokeStyle = '#ffffff'
+  context.stroke()
+  context.closePath()
 
-  startDrawing(e) {
-    this.isDrawing = true
-    this.draw(e)
-  }
+  // ball
+  context.beginPath()
+  context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2)
+  context.fillStyle = '#ffffff'
+  context.fill()
+  context.closePath()
 
-  stopDrawing() {
-    this.isDrawing = false
-  }
+  // top paddle
+  context.beginPath()
+  context.rect(paddle.x, 0, paddle.width, paddle.height)
+  context.fillStyle = '#ffffff'
+  context.fill()
+  context.closePath()
 
-  draw(e) {
-    if (!this.isDrawing) return
-    let rect = this.canvas.getBoundingClientRect()
-    let x =
-      Math.floor((e.clientX - rect.left) / this.resolution) * this.resolution
-    let y =
-      Math.floor((e.clientY - rect.top) / this.resolution) * this.resolution
+  // bottom paddle
+  context.beginPath()
+  context.rect(paddle.x, height - paddle.height, paddle.width, paddle.height)
+  context.fillStyle = '#ffffff'
+  context.fill()
+  context.closePath()
+}
 
-    if (this.isErasing) {
-      this.context.clearRect(x, y, 10, 10)
-    } else {
-      this.context.fillStyle = this.color
-      this.context.fillRect(x, y, this.resolution, this.resolution)
+function update() {
+  ball.x += ball.speedX
+  ball.y += ball.speedY
+
+  if (
+    ball.x + ball.radius >= paddle.x &&
+    ball.x - ball.radius <= paddle.x + paddle.width
+  ) {
+    if (ball.y <= paddle.height) {
+      // top paddle
+      if (moved) {
+        if (intersection() > 0) {
+          ball.speedX -= 1
+        } else {
+          ball.speedX += 1
+        }
+      }
+
+      ball.speedY = -ball.speedY
+      ball.y = paddle.height + ball.radius
+    } else if (ball.y >= height - paddle.height) {
+      // bottom paddle
+      if (moved) {
+        if (intersection() > 0) {
+          ball.speedX += 1
+        } else {
+          ball.speedX -= 1
+        }
+      }
+
+      ball.speedY = -ball.speedY
+      ball.y = height - paddle.height - ball.radius
+    }
+    moved = false
+  } else {
+    if (ball.y + ball.radius > height) {
+      ball.speedX = 0
+      ball.y = height - ball.radius
+    } else if (ball.y < ball.radius) {
+      ball.speedX = 0
+      ball.y = ball.radius
+    }
+
+    // hit left and right wall
+    if (ball.x + ball.radius > width) {
+      console.log('right')
+
+      ball.speedX = -ball.speedX
+      ball.x = width - ball.radius
+    } else if (ball.x - ball.radius < 0) {
+      console.log('left')
+      ball.speedX = -ball.speedX
+      ball.x = ball.radius
     }
   }
-
-  clear() {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-  }
-
-  saveAsImage() {
-    let imageData = this.canvas.toDataURL('image/png')
-    let image = new Image()
-    image.src = imageData
-    let link = document.createElement('a')
-    link.href = image.src
-    link.download = 'canvas_image.png'
-    link.click()
-  }
-
-  changeOptions(options) {
-    this.color = options.color || 'black'
-    this.resolution = options.resolution || 10
-    this.isErasing = options.eraseMode
-  }
 }
 
-const gui = new GUI()
-const options = {
-  color: '#4d4c4c',
-  eraseMode: false,
-  resolution: 6,
-  clear() {},
-  saveAsImage() {}
+function loop() {
+  renderCanvas()
+  update()
+  window.requestAnimationFrame(loop)
 }
 
-const board = new PixelBoard('board', options)
-
-gui.addColor(options, 'color', 0, 40, 1).onChange((v) => {
-  options.color = v
-  board.changeOptions(options)
-})
-
-gui.add(options, 'resolution', ['3', '6', '10', '12']).onChange((v) => {
-  options.resolution = v
-  board.changeOptions(options)
-})
-
-gui.add(options, 'eraseMode').onChange((v) => {
-  options.eraseMode = v
-  board.changeOptions(options)
-})
-
-gui.add(options, 'clear').onChange(() => {
-  board.clear()
-})
-
-gui.add(options, 'saveAsImage').onChange(() => {
-  board.saveAsImage()
-})
+createCanvas()
+loop()
