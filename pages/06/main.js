@@ -1,188 +1,199 @@
 import {
   AdditiveBlending,
-  AmbientLight,
-  AxesHelper,
-  ConeGeometry,
-  DirectionalLight,
-  GridHelper,
-  Mesh,
-  MeshBasicMaterial,
-  MeshDepthMaterial,
-  MeshLambertMaterial,
-  MeshNormalMaterial,
-  MeshPhongMaterial,
+  BufferAttribute,
+  BufferGeometry,
+  Clock,
+  Color,
   PerspectiveCamera,
-  PointLight,
+  Points,
+  PointsMaterial,
   Scene,
-  SphereGeometry,
-  SRGBColorSpace,
-  Texture,
   WebGLRenderer
 } from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { OrbitControls } from 'three/examples/jsm/controls/orbitcontrols'
+import GUI from 'lil-gui'
 
-let camera, scene, renderer
-let pointLight
+const gui = new GUI({
+  title: 'galaxy',
+  resizable: true,
+  closeFolders: true
+})
 
-const objects = [],
-  materials = []
+const canvas = document.querySelector('canvas.webgl')
 
-init()
-animate()
+const scene = new Scene()
 
-function init() {
-  const container = document.querySelector('#graph')
-  let width = container.clientWidth
-  let height = container.clientHeight
-  scene = new Scene()
-  camera = new PerspectiveCamera(75, width / height, 0.1, 10000)
-  camera.position.set(0, 200, 800)
+// Galaxy
+const parameters = {}
+parameters.count = 25000
+parameters.size = 0.02
+parameters.radius = 5
+parameters.branches = 3
+parameters.spin = 1
+parameters.randomness = 0.2
+parameters.randomnessPower = 3
+parameters.insideColor = '#ff6030'
+parameters.outsideColor = '#1b3984'
 
-  const helper = new GridHelper(1000, 40, 0x303030, 0x303030)
-  helper.position.y = -75
-  scene.add(helper)
+let geometry = null
+let material = null
+let points = null
 
-  // materials
-  const texture = new Texture(generateTexture())
-  texture.colorSpace = SRGBColorSpace
-  texture.needsUpdate = true
+const generateGalaxy = () => {
+  console.log('Generating Galaxy')
 
-  materials.push(new MeshLambertMaterial({ map: texture, transparent: true }))
-  materials.push(new MeshLambertMaterial({ color: 0xdddddd }))
-  materials.push(
-    new MeshPhongMaterial({
-      color: 0xdddddd,
-      specular: 0x009900,
-      shininess: 30,
-      flatShading: true
-    })
-  )
-  materials.push(new MeshNormalMaterial())
-  materials.push(
-    new MeshBasicMaterial({
-      color: 0xffaa00,
-      transparent: true,
-      blending: AdditiveBlending
-    })
-  )
-  // materials.push(new MeshLambertMaterial({ color: 0xdddddd }))
+  if (points !== null) {
+    geometry.dispose()
+    material.dispose()
+    scene.remove(points)
+  }
 
-  materials.push(
-    new MeshPhongMaterial({
-      color: 0xdddddd,
-      specular: 0x009900,
-      shininess: 30,
-      map: texture,
-      transparent: true
-    })
-  )
-  materials.push(new MeshNormalMaterial({ flatShading: true }))
-  materials.push(new MeshBasicMaterial({ color: 0xffaa00, wireframe: true }))
-  materials.push(new MeshDepthMaterial())
-  materials.push(
-    new MeshLambertMaterial({ color: 0x666666, emissive: 0xff0000 })
-  )
-  materials.push(
-    new MeshPhongMaterial({
-      color: 0x000000,
-      specular: 0x666666,
-      emissive: 0xff0000,
-      shininess: 10,
-      opacity: 0.9,
-      transparent: true
-    })
-  )
-  materials.push(new MeshBasicMaterial({ map: texture, transparent: true }))
+  geometry = new BufferGeometry()
+  const positions = new Float32Array(parameters.count * 3)
+  const colors = new Float32Array(parameters.count * 3)
 
-  renderer = new WebGLRenderer()
-  renderer.setSize(width, height)
+  const colorInside = new Color(parameters.insideColor)
+  const colorOutside = new Color(parameters.outsideColor)
+
+  for (let i = 0; i < parameters.count; i++) {
+    const i3 = i * 3
+    // position
+    const radius = Math.random() * parameters.radius
+    const spinAngle = radius * parameters.spin
+    const branchAngle =
+      ((i % parameters.branches) / parameters.branches) * Math.PI * 2
+
+    const randomX =
+      Math.pow(Math.random(), parameters.randomnessPower) *
+      (Math.random() < 0.5 ? 1 : -1)
+    const randomY =
+      Math.pow(Math.random(), parameters.randomnessPower) *
+      (Math.random() < 0.5 ? 1 : -1)
+    const randomZ =
+      Math.pow(Math.random(), parameters.randomnessPower) *
+      (Math.random() < 0.5 ? 1 : -1)
+
+    positions[i3 + 0] = Math.cos(branchAngle + spinAngle) * radius + randomX
+    positions[i3 + 1] = 0 + randomY
+    positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ
+
+    // color
+    const mixedColor = colorInside.clone()
+    mixedColor.lerp(colorOutside, radius / parameters.radius)
+
+    colors[i3 + 0] = mixedColor.r
+    colors[i3 + 1] = mixedColor.g
+    colors[i3 + 2] = mixedColor.b
+  }
+
+  geometry.setAttribute('position', new BufferAttribute(positions, 3))
+  geometry.setAttribute('color', new BufferAttribute(colors, 3))
+
+  material = new PointsMaterial({
+    size: parameters.size,
+    sizeAttenuation: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    vertexColors: true
+  })
+
+  /**
+   * Points
+   */
+  points = new Points(geometry, material)
+  scene.add(points)
+}
+
+generateGalaxy()
+
+gui
+  .add(parameters, 'count')
+  .min(100)
+  .max(100000)
+  .step(100)
+  .onFinishChange(generateGalaxy)
+gui
+  .add(parameters, 'size')
+  .min(0.001)
+  .max(0.1)
+  .step(0.001)
+  .onFinishChange(generateGalaxy)
+gui
+  .add(parameters, 'radius')
+  .min(0.01)
+  .max(20)
+  .step(0.01)
+  .onFinishChange(generateGalaxy)
+gui
+  .add(parameters, 'branches')
+  .min(2)
+  .max(20)
+  .step(1)
+  .onFinishChange(generateGalaxy)
+gui
+  .add(parameters, 'spin')
+  .min(-5)
+  .max(5)
+  .step(0.001)
+  .onFinishChange(generateGalaxy)
+gui
+  .add(parameters, 'randomness')
+  .min(0)
+  .max(2)
+  .step(0.001)
+  .onFinishChange(generateGalaxy)
+gui
+  .add(parameters, 'randomnessPower')
+  .min(1)
+  .max(10)
+  .step(0.001)
+  .onFinishChange(generateGalaxy)
+gui.addColor(parameters, 'insideColor').onFinishChange(generateGalaxy)
+gui.addColor(parameters, 'outsideColor').onFinishChange(generateGalaxy)
+
+const sizes = {
+  width: window.innerWidth,
+  height: window.innerHeight
+}
+
+window.addEventListener('resize', () => {
+  // Update sizes
+  sizes.width = window.innerWidth
+  sizes.height = window.innerHeight
+
+  console.log('update sizes', sizes)
+
+  // Update camera
+  camera.aspect = sizes.width / sizes.height
+  camera.updateProjectionMatrix()
+
+  // Update renderer
+  renderer.setSize(sizes.width, sizes.height)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-  container.appendChild(renderer.domElement)
+})
 
-  // control
-  const controls = new OrbitControls(camera, renderer.domElement)
+const camera = new PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
+camera.position.z = 3
+scene.add(camera)
+
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
+
+const renderer = new WebGLRenderer({
+  canvas: canvas
+})
+renderer.setSize(sizes.width, sizes.height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+const clock = new Clock()
+
+const tick = () => {
+  const elapsedTime = clock.getElapsedTime()
+
   controls.update()
 
-  const geometry = new SphereGeometry(30, 32, 16)
-  for (let i = 0, l = materials.length; i < l; i++) {
-    addMesh(geometry, materials[i])
-  }
-
-  console.log(8888, objects)
-
-  // lights
-  const light = new AmbientLight(0x404040)
-  light.position.set(1, 1, 1)
-  scene.add(light)
-
-  const directionalLight = new DirectionalLight(0xffffff, 0.125)
-
-  directionalLight.position.x = Math.random() - 0.5
-  directionalLight.position.y = Math.random() - 0.5
-  directionalLight.position.z = Math.random() - 0.5
-  directionalLight.position.normalize()
-
-  // scene.add(directionalLight)
-
-  pointLight = new PointLight(0xffffff, 1)
-  scene.add(pointLight)
-  pointLight.add(
-    new Mesh(
-      new SphereGeometry(4, 8, 8),
-      new MeshBasicMaterial({ color: 0xffffff })
-    )
-  )
-}
-
-function addMesh(geometry, material) {
-  const mesh = new Mesh(geometry, material)
-  mesh.position.x = (objects.length % 4) * 200 - 400
-  mesh.position.z = Math.floor(objects.length / 4) * 200 - 200
-
-  objects.push(mesh)
-  scene.add(mesh)
-}
-
-function generateTexture() {
-  const canvas = document.createElement('canvas')
-  canvas.width = 256
-  canvas.height = 256
-  const context = canvas.getContext('2d')
-  const image = context.getImageData(0, 0, 256, 256)
-
-  let x = 0,
-    y = 0
-
-  for (let i = 0, j = 0, l = image.data.length; i < l; i += 4, j++) {
-    x = j % 256
-    y = x === 0 ? y + 1 : y
-
-    image.data[i] = 255
-    image.data[i + 1] = 255
-    image.data[i + 2] = 255
-    image.data[i + 3] = Math.floor(x ^ y)
-  }
-  context.putImageData(image, 0, 0)
-  return canvas
-}
-
-function animate() {
-  render()
-  requestAnimationFrame(animate)
-}
-
-function render() {
-  const timer = 0.0001 * Date.now()
-
-  for (let i = 0, l = objects.length; i < l; i++) {
-    const object = objects[i]
-
-    object.rotation.x += 0.01
-    object.rotation.y += 0.005
-  }
-
-  pointLight.position.x = Math.sin(timer * 7) * 300
-  pointLight.position.y = Math.cos(timer * 5) * 400
-  pointLight.position.z = Math.cos(timer * 3) * 300
   renderer.render(scene, camera)
+  window.requestAnimationFrame(tick)
 }
+
+tick()

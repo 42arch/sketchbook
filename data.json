@@ -43,8 +43,8 @@
     ]
   },
   {
-    "name": "3D Material Demo",
-    "intro": "Just some materails provided by Three.js",
+    "name": "Galaxy",
+    "intro": "Galaxy System made with Three.js",
     "page": "06",
     "tools": [
       "three.js"
