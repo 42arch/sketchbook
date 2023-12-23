@@ -4,17 +4,26 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>p5 demo</title>
+    <title>14. Delaunay</title>
     <link rel="stylesheet" href="./../style.css" />
+    <style>
+      .container {
+        gap: 16px;
+      }
+      .renderer {
+        margin: 0;
+        height: 800px;
+        width: 600px;
+        border: none;
+      }
+    </style>
   </head>
   <body>
     <div class="main">
+      <h3>Delaunay and Voronoi</h3>
       <div class="container">
         <div class="item">
-          <div id="noise1" class="renderer"></div>
-        </div>
-        <div class="item">
-          <div id="noise2" class="renderer"></div>
+          <div id="voronoi" class="renderer"></div>
         </div>
       </div>
     </div>
