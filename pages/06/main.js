@@ -6,12 +6,14 @@ import {
   Color,
   PerspectiveCamera,
   Points,
-  PointsMaterial,
   Scene,
+  ShaderMaterial,
   WebGLRenderer
 } from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/orbitcontrols'
 import GUI from 'lil-gui'
+import galaxtVertexShader from './shaders/galaxy/vertex.glsl'
+import galaxyFragmentShader from './shaders/galaxy/fragment.glsl'
 
 const gui = new GUI({
   title: 'galaxy',
@@ -25,12 +27,12 @@ const scene = new Scene()
 
 // Galaxy
 const parameters = {}
-parameters.count = 25000
-parameters.size = 0.02
+parameters.count = 200000
+parameters.size = 0.005
 parameters.radius = 5
 parameters.branches = 3
 parameters.spin = 1
-parameters.randomness = 0.2
+parameters.randomness = 0.5
 parameters.randomnessPower = 3
 parameters.insideColor = '#ff6030'
 parameters.outsideColor = '#1b3984'
@@ -51,6 +53,8 @@ const generateGalaxy = () => {
   geometry = new BufferGeometry()
   const positions = new Float32Array(parameters.count * 3)
   const colors = new Float32Array(parameters.count * 3)
+  const scales = new Float32Array(parameters.count * 1)
+  const randomness = new Float32Array(parameters.count * 3)
 
   const colorInside = new Color(parameters.insideColor)
   const colorOutside = new Color(parameters.outsideColor)
@@ -63,38 +67,62 @@ const generateGalaxy = () => {
     const branchAngle =
       ((i % parameters.branches) / parameters.branches) * Math.PI * 2
 
+    positions[i3] = Math.cos(branchAngle) * radius
+    positions[i3 + 1] = 0
+    positions[i3 + 2] = Math.sin(branchAngle) * radius
+
+    // Randomness
     const randomX =
       Math.pow(Math.random(), parameters.randomnessPower) *
-      (Math.random() < 0.5 ? 1 : -1)
+      (Math.random() < 0.5 ? 1 : -1) *
+      parameters.randomness *
+      radius
     const randomY =
       Math.pow(Math.random(), parameters.randomnessPower) *
-      (Math.random() < 0.5 ? 1 : -1)
+      (Math.random() < 0.5 ? 1 : -1) *
+      parameters.randomness *
+      radius
     const randomZ =
       Math.pow(Math.random(), parameters.randomnessPower) *
-      (Math.random() < 0.5 ? 1 : -1)
+      (Math.random() < 0.5 ? 1 : -1) *
+      parameters.randomness *
+      radius
 
-    positions[i3 + 0] = Math.cos(branchAngle + spinAngle) * radius + randomX
-    positions[i3 + 1] = 0 + randomY
-    positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + randomZ
+    randomness[i3] = randomX
+    randomness[i3 + 1] = randomY
+    randomness[i3 + 2] = randomZ
 
     // color
     const mixedColor = colorInside.clone()
     mixedColor.lerp(colorOutside, radius / parameters.radius)
 
-    colors[i3 + 0] = mixedColor.r
+    colors[i3] = mixedColor.r
     colors[i3 + 1] = mixedColor.g
     colors[i3 + 2] = mixedColor.b
+
+    // scale
+    scales[i] = Math.random()
   }
 
   geometry.setAttribute('position', new BufferAttribute(positions, 3))
   geometry.setAttribute('color', new BufferAttribute(colors, 3))
+  geometry.setAttribute('aScale', new BufferAttribute(scales, 1))
+  geometry.setAttribute('aRandomness', new BufferAttribute(randomness, 3))
 
-  material = new PointsMaterial({
-    size: parameters.size,
-    sizeAttenuation: true,
+  material = new ShaderMaterial({
     depthWrite: false,
     blending: AdditiveBlending,
-    vertexColors: true
+    vertexColors: true,
+    vertexShader: galaxtVertexShader,
+    fragmentShader: galaxyFragmentShader,
+    uniforms: {
+      uTime: {
+        value: 0
+      },
+      uSize: {
+        value: 30 * renderer.getPixelRatio()
+      }
+    }
   })
 
   /**
@@ -104,19 +132,11 @@ const generateGalaxy = () => {
   scene.add(points)
 }
 
-generateGalaxy()
-
 gui
   .add(parameters, 'count')
   .min(100)
-  .max(100000)
+  .max(1000000)
   .step(100)
-  .onFinishChange(generateGalaxy)
-gui
-  .add(parameters, 'size')
-  .min(0.001)
-  .max(0.1)
-  .step(0.001)
   .onFinishChange(generateGalaxy)
 gui
   .add(parameters, 'radius')
@@ -129,12 +149,6 @@ gui
   .min(2)
   .max(20)
   .step(1)
-  .onFinishChange(generateGalaxy)
-gui
-  .add(parameters, 'spin')
-  .min(-5)
-  .max(5)
-  .step(0.001)
   .onFinishChange(generateGalaxy)
 gui
   .add(parameters, 'randomness')
@@ -161,8 +175,6 @@ window.addEventListener('resize', () => {
   sizes.width = window.innerWidth
   sizes.height = window.innerHeight
 
-  console.log('update sizes', sizes)
-
   // Update camera
   camera.aspect = sizes.width / sizes.height
   camera.updateProjectionMatrix()
@@ -173,7 +185,7 @@ window.addEventListener('resize', () => {
 })
 
 const camera = new PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
-camera.position.z = 3
+camera.position.set(3, 3, 3)
 scene.add(camera)
 
 const controls = new OrbitControls(camera, canvas)
@@ -185,10 +197,14 @@ const renderer = new WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
+generateGalaxy()
+
 const clock = new Clock()
 
 const tick = () => {
   const elapsedTime = clock.getElapsedTime()
+
+  material.uniforms.uTime.value = elapsedTime
 
   controls.update()
 
