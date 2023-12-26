@@ -10,6 +10,7 @@ import {
   ShaderMaterial,
   WebGLRenderer
 } from 'three'
+import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/orbitcontrols'
 import GUI from 'lil-gui'
 import galaxtVertexShader from './shaders/galaxy/vertex.glsl'
