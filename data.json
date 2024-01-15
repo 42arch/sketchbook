@@ -115,8 +115,8 @@
     ]
   },
   {
-    "name": "Particles",
-    "intro": "Particles",
+    "name": "Earth",
+    "intro": "Create the Earth with three.js",
     "page": "15",
     "tools": [
       "three.js"

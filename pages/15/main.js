@@ -1,120 +1,128 @@
-import * as d3 from 'd3'
+import {
+  AdditiveBlending,
+  Clock,
+  DirectionalLight,
+  Group,
+  IcosahedronGeometry,
+  Mesh,
+  MeshBasicMaterial,
+  MeshPhongMaterial,
+  MeshStandardMaterial,
+  PerspectiveCamera,
+  Scene,
+  TextureLoader,
+  WebGLRenderer
+} from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import GUI from 'lil-gui'
+import getStarField from './getStarField'
+import { getFresnelMat } from './getFresnelMat'
 
-class Voronoi {
-  constructor(id, data, options) {
-    this.id = id
-    this.data = data
-    this.options = options
-    this.dpi = window.devicePixelRatio || 1
-    this.width = d3.select(this.id).node().offsetWidth || 0
-    this.height = d3.select(this.id).node().offsetHeight || 0
-    this.canvas = null
-    this.ctx = null
-    this.path = null
-    this.delaunay = null
-    this.voronoi = null
+/**
+ * Debug
+ */
+const gui = new GUI()
 
-    this.render()
-  }
+const canvas = document.querySelector('canvas.webgl')
+const scene = new Scene()
 
-  render() {
-    this.canvas = d3
-      .select(this.id)
-      .append('canvas')
-      .attr('width', this.width * this.dpi)
-      .attr('height', this.height * this.dpi)
-    // .style('width', `${this.width}px`)
-    // .style('height', `${this.height}px`)
-    this.ctx = this.canvas.node().getContext('2d')
-    this.ctx.scale(this.dpi, this.dpi)
+const loader = new TextureLoader()
 
-    this.delaunay = d3.Delaunay.from(this.data)
-    this.voronoi = this.delaunay.voronoi([
-      1,
-      1,
-      this.width - 1,
-      this.height - 1
-    ])
+const earthGroup = new Group()
+earthGroup.rotation.z = (-23.4 * Math.PI) / 180
+scene.add(earthGroup)
+const geometry = new IcosahedronGeometry(1, 12)
+const material = new MeshPhongMaterial({
+  map: loader.load('/assets/textures/earth/earthmap1k.jpg'),
+  specularMap: loader.load('/assets/textures/earth/earthspec1k.jpg'),
+  bumpMap: loader.load('/assets/textures/earth/earthbump1k.jpg'),
+  bumpScale: 0.04
+})
+const earthMesh = new Mesh(geometry, material)
+earthGroup.add(earthMesh)
 
-    for (let i = 0; i < this.data.length; i++) {
-      this.renderItem(i)
-      this.ctx.canvas.ontouchmove = this.ctx.canvas.onmousemove = (e) => {
-        const h = this.delaunay.find(e.layerX, e.layerY)
-        this.renderItem(h)
-      }
-    }
-  }
+const lightsMat = new MeshBasicMaterial({
+  map: loader.load('/assets/textures/earth/earthlights1k.jpg'),
+  blending: AdditiveBlending
+})
+const lightsMesh = new Mesh(geometry, lightsMat)
+earthGroup.add(lightsMesh)
 
-  renderItem(index) {
-    this.ctx.clearRect(0, 0, this.width, this.height)
+const cloudMat = new MeshStandardMaterial({
+  map: loader.load('/assets/textures/earth/earthcloudmap.jpg'),
+  transparent: true,
+  opacity: 0.8,
+  blending: AdditiveBlending,
+  alphaMap: loader.load('/assets/textures/earth/earthcloudmaptrans.jpg')
+})
+const cloudMesh = new Mesh(geometry, cloudMat)
+cloudMesh.scale.setScalar(1.003)
+earthGroup.add(cloudMesh)
 
-    if (index >= 0) {
-      this.ctx.fillStyle = '#0f0'
-      this.ctx.beginPath()
-      this.voronoi.renderCell(index, this.ctx)
-      this.ctx.fill()
+const freshnelMat = getFresnelMat()
+const glowMesh = new Mesh(geometry, freshnelMat)
+glowMesh.scale.setScalar(1.01)
+earthGroup.add(glowMesh)
 
-      const v = [...this.voronoi.neighbors(index)]
-      const d = [...this.delaunay.neighbors(index)]
-      const u = d.filter((j) => !v.includes(j))
+const stars = getStarField(1000)
+scene.add(stars)
 
-      this.ctx.fillStyle = '#ff0'
-      this.ctx.beginPath()
-      for (let j of u) this.voronoi.renderCell(j, this.ctx)
-      this.ctx.fill()
-
-      this.ctx.fillStyle = '#cfc'
-      this.ctx.beginPath()
-      for (let j of v) this.voronoi.renderCell(j, this.ctx)
-      this.ctx.fill()
-
-      this.ctx.strokeStyle = '#000'
-      this.ctx.beginPath()
-      this.voronoi.render(this.ctx)
-      this.voronoi.renderBounds(this.ctx)
-      this.ctx.stroke()
-
-      this.ctx.strokeStyle = 'orange'
-      this.ctx.setLineDash([2, 4])
-      this.ctx.beginPath()
-      this.delaunay.render(this.ctx)
-      this.delaunay.renderHull(this.ctx)
-      this.ctx.stroke()
-      this.ctx.setLineDash([])
-
-      this.ctx.beginPath()
-      for (let j of d) {
-        this.ctx.moveTo(...this.data[index])
-        this.ctx.lineTo(...this.data[j])
-      }
-      this.ctx.strokeStyle = 'red'
-      this.ctx.stroke()
-
-      this.ctx.fillStyle = 'gray'
-      this.ctx.beginPath()
-      d3.geoPath(null, this.ctx).pointRadius(2.5)({
-        type: 'MultiPoint',
-        coordinates: this.data
-      })
-      this.ctx.fill()
-
-      const curPoint = this.data[index]
-      this.ctx.fillStyle = 'red'
-      this.ctx.beginPath()
-      this.ctx.arc(...curPoint, 4, 0, 2 * Math.PI, false)
-      this.ctx.fill()
-      this.ctx.closePath()
-    }
-  }
+const sizes = {
+  width: window.innerWidth,
+  height: window.innerHeight
 }
 
-function generateRandomPoints(num, width, height) {
-  return Array.from({ length: num }, () => [
-    Math.random() * width,
-    Math.random() * height
-  ])
+window.addEventListener('resize', () => {
+  // Update sizes
+  sizes.width = window.innerWidth
+  sizes.height = window.innerHeight
+
+  // Update camera
+  camera.aspect = sizes.width / sizes.height
+  camera.updateProjectionMatrix()
+
+  // Update renderer
+  renderer.setSize(sizes.width, sizes.height)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+})
+
+// Light
+const sunLight = new DirectionalLight(0xffffff)
+sunLight.position.set(-2, 0.5, 1.5)
+scene.add(sunLight)
+
+const camera = new PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100)
+camera.position.z = 5
+scene.add(camera)
+
+// Controls
+const controls = new OrbitControls(camera, canvas)
+controls.enableDamping = true
+
+// Renderer
+const renderer = new WebGLRenderer({
+  canvas: canvas
+})
+renderer.setSize(sizes.width, sizes.height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+/**
+ * Animate
+ */
+
+const clock = new Clock()
+
+const tick = () => {
+  const elapsedTime = clock.getElapsedTime()
+
+  earthMesh.rotation.y += 0.002
+  lightsMesh.rotation.y += 0.002
+  cloudMesh.rotation.y += 0.0023
+  glowMesh.rotation.y += 0.002
+  stars.rotation.y -= 0.0002
+  controls.update()
+  renderer.render(scene, camera)
+  window.requestAnimationFrame(tick)
 }
 
-const points = generateRandomPoints(180, 600, 800)
-
-const voronoi = new Voronoi('#voronoi', points, {})
+tick()
