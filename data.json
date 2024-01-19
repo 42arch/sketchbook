@@ -121,5 +121,13 @@
     "tools": [
       "three.js"
     ]
+  },
+  {
+    "name": "3D City",
+    "intro": "Create a 3D City with three.js",
+    "page": "16",
+    "tools": [
+      "three.js"
+    ]
   }
 ]
