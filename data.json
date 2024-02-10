@@ -129,5 +129,13 @@
     "tools": [
       "three.js"
     ]
+  },
+  {
+    "name": "3D Terrain",
+    "intro": "3D Terrain",
+    "page": "17",
+    "tools": [
+      "three.js"
+    ]
   }
 ]
